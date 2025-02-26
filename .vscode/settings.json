@@ -1,0 +1,6 @@
+{
+  "deno.enable": true,
+  "deno.env": {
+    "DENO_TLS_CA_STORE": "system"
+  }
+}

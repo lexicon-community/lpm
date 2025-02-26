@@ -1,0 +1,97 @@
+import { AtUri, NSID } from "@atproto/syntax";
+import { globalContainer } from "./container.ts";
+import { Node, Resolution } from "./node.ts";
+import { NodeRegistry } from "./node-registry.ts";
+import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
+
+const container = globalContainer.inner.createChild();
+
+// Temporarily mocking registry because strongRef isn't published yet
+class MockedNodeRegistry extends NodeRegistry {
+  override get(nsid: NSID): Node {
+    if (
+      ["com.atproto.repo.strongRef", "com.atproto.label.defs"].includes(
+        nsid.toString()
+      )
+    ) {
+      return {
+        nsid,
+        // @ts-expect-error
+        async resolve() {
+          return {
+            children: [],
+            doc: { defs: [] },
+            success: true,
+            uri: new AtUri(
+              `at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/${nsid.toString()}`
+            ),
+          };
+        },
+      };
+    }
+
+    return super.get(nsid);
+  }
+}
+container.bind({
+  provide: NodeRegistry,
+  useClass: MockedNodeRegistry,
+});
+
+function assertSuccessfullResolution(
+  data: Resolution,
+  msg?: string
+): asserts data is Resolution & { success: true } {
+  assertObjectMatch(data, { success: true }, msg);
+}
+
+Deno.test("resolves uri", async () => {
+  const registry = container.get(NodeRegistry);
+
+  const resolution = await registry
+    .get(NSID.parse("com.atproto.lexicon.schema"))
+    .resolve();
+
+  assertSuccessfullResolution(resolution);
+  assertEquals(
+    resolution.uri.toString(),
+    "at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/com.atproto.lexicon.schema"
+  );
+});
+
+Deno.test("node children", async () => {
+  const registry = container.get(NodeRegistry);
+
+  const resolution = await registry
+    .get(NSID.parse("app.bsky.actor.profile"))
+    .resolve();
+  assertSuccessfullResolution(resolution);
+  console.log(resolution.uri.toString());
+
+  assertEquals(resolution.children.length, 1);
+  assertEquals(
+    resolution.children[0].nsid.toString(),
+    "com.atproto.repo.strongRef"
+  );
+});
+
+Deno.test.only("registry resolve", async () => {
+  const registry = container.get(NodeRegistry);
+
+  const uris = [];
+
+  for await (const node of registry.resolve([
+    NSID.parse("app.bsky.feed.getPosts"),
+  ])) {
+    assertSuccessfullResolution(node);
+    uris.push(node.uri.toString());
+    console.log(node.uri.toString());
+  }
+
+  // assertEquals(uris, [
+  //   "at://did:plc:4v4y5r3lwsbtmsxhile2ljac/com.atproto.lexicon.schema/app.bsky.graph.getList",
+  //   "at://did:plc:4v4y5r3lwsbtmsxhile2ljac/com.atproto.lexicon.schema/app.bsky.graph.defs",
+  //   "at://did:plc:4v4y5r3lwsbtmsxhile2ljac/com.atproto.lexicon.schema/app.bsky.actor.defs",
+  //   "at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/com.atproto.repo.strongRef",
+  // ]);
+});
