@@ -18,6 +18,7 @@ export type Resolution =
       children: Node[];
       nsid: NSID;
       cid: string;
+      unresolvedRefs: string[];
     }
   | {
       success: false;
@@ -69,14 +70,20 @@ export class Node {
       throw new Error("Expected cid to be defined");
     }
 
-    const refs = getRefs(doc);
-    const childNsids = refs
-      .filter(
-        // Filter out internal references
-        (ref) =>
-          !ref.startsWith("#") && ref.split("#")[0] !== this.nsid.toString()
-      )
-      .map((ref) => NSID.parse(ref));
+    const childNsids = [];
+    const unresolvedRefs = [];
+    for (const ref of getRefs(doc)) {
+      // Filter out internal references
+      if (ref.startsWith("#") || ref.split("#")[0] === this.nsid.toString()) {
+        continue;
+      }
+
+      if (NSID.isValid(ref)) {
+        childNsids.push(NSID.parse(ref));
+      } else {
+        unresolvedRefs.push(ref);
+      }
+    }
 
     return {
       success: true,
@@ -85,6 +92,7 @@ export class Node {
       doc,
       nsid: this.nsid,
       cid: schemaRecordResponse.data.cid,
+      unresolvedRefs,
     };
   }
 
