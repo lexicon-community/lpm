@@ -63,10 +63,14 @@ export class Node {
 
     const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
 
-    const refs = getExternalRefs(this.nsid, doc);
-    console.log(refs);
-    // TODO: Better presentation of errors. Maybe just ignore?
-    const childNsids = refs.map((ref) => NSID.parse(ref));
+    const refs = getRefs(doc);
+    const childNsids = refs
+      .filter(
+        // Filter out internal references
+        (ref) =>
+          !ref.startsWith("#") && ref.split("#")[0] !== this.nsid.toString()
+      )
+      .map((ref) => NSID.parse(ref));
 
     return {
       success: true,
@@ -86,7 +90,7 @@ export class Node {
   }
 }
 
-function getExternalRefs(nsid: NSID, doc: LexiconDoc): string[] {
+function getRefs(doc: LexiconDoc): string[] {
   const refs: (LexRefVariant | string)[] = [];
 
   for (const def of Object.values(doc.defs)) {
@@ -150,16 +154,10 @@ function getExternalRefs(nsid: NSID, doc: LexiconDoc): string[] {
     ...new Set(
       refs.flatMap((ref) =>
         typeof ref === "string"
-          ? isExternalRef(nsid, ref)
-            ? [ref]
-            : []
+          ? [ref]
           : ref.type === "ref"
-          ? isExternalRef(nsid, ref.ref)
-            ? [ref.ref.split("#")[0]!]
-            : []
-          : ref.refs
-              .filter((ref) => isExternalRef(nsid, ref))
-              .map((ref) => ref.split("#")[0]!)
+          ? [ref.ref.split("#")[0]!]
+          : ref.refs.map((ref) => ref.split("#")[0]!)
       )
     ),
   ];
@@ -177,15 +175,4 @@ function getObjectRefs(obj: LexObject) {
 
     return [];
   });
-}
-
-function isExternalRef(nsid: NSID, ref: string): boolean {
-  console.log(
-    ref,
-    nsid.toString(),
-    !ref.startsWith("#"),
-    ref.split("#")[0] !== nsid.toString(),
-    ref.split("#")[0]
-  );
-  return !ref.startsWith("#") || ref.split("#")[0] !== nsid.toString();
 }
