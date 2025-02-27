@@ -63,7 +63,8 @@ export class Node {
 
     const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
 
-    const refs = getExternalRefs(doc);
+    const refs = getExternalRefs(this.nsid, doc);
+    console.log(refs);
     // TODO: Better presentation of errors. Maybe just ignore?
     const childNsids = refs.map((ref) => NSID.parse(ref));
 
@@ -85,10 +86,11 @@ export class Node {
   }
 }
 
-function getExternalRefs(doc: LexiconDoc): string[] {
-  const refs: LexRefVariant[] = [];
+function getExternalRefs(nsid: NSID, doc: LexiconDoc): string[] {
+  const refs: (LexRefVariant | string)[] = [];
 
   for (const def of Object.values(doc.defs)) {
+    // console.log(def);
     switch (def.type) {
       case "array":
         refs.push(...getArrayRefs(def));
@@ -133,23 +135,31 @@ function getExternalRefs(doc: LexiconDoc): string[] {
         }
         break;
 
-      case "token":
       case "string":
+        if (def.knownValues) {
+          refs.push(...def.knownValues);
+        }
         break;
 
       default:
-        throw new Error(`Unexpected def type: ${def.type}`);
+        console.warn(`Unexpected def type: ${def.type}`);
     }
   }
 
   return [
     ...new Set(
       refs.flatMap((ref) =>
-        ref.type === "ref"
-          ? isExternalRef(ref.ref)
+        typeof ref === "string"
+          ? isExternalRef(nsid, ref)
+            ? [ref]
+            : []
+          : ref.type === "ref"
+          ? isExternalRef(nsid, ref.ref)
             ? [ref.ref.split("#")[0]!]
             : []
-          : ref.refs.filter(isExternalRef).map((ref) => ref.split("#")[0]!)
+          : ref.refs
+              .filter((ref) => isExternalRef(nsid, ref))
+              .map((ref) => ref.split("#")[0]!)
       )
     ),
   ];
@@ -169,6 +179,13 @@ function getObjectRefs(obj: LexObject) {
   });
 }
 
-function isExternalRef(ref: string): boolean {
-  return !ref.startsWith("#");
+function isExternalRef(nsid: NSID, ref: string): boolean {
+  console.log(
+    ref,
+    nsid.toString(),
+    !ref.startsWith("#"),
+    ref.split("#")[0] !== nsid.toString(),
+    ref.split("#")[0]
+  );
+  return !ref.startsWith("#") || ref.split("#")[0] !== nsid.toString();
 }
