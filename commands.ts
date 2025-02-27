@@ -1,8 +1,9 @@
-import { inject } from "@needle-di/core";
+import { inject, injectable } from "@needle-di/core";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSID } from "@atproto/syntax";
 import { ensureFile } from "jsr:@std/fs";
 
+@injectable()
 export class FileSystem {
   writeText(path: string, data: string | ReadableStream<string>) {
     return Deno.writeTextFile(path, data);
@@ -13,6 +14,7 @@ export class FileSystem {
   }
 }
 
+@injectable()
 export class Commands {
   constructor(
     private fs = inject(FileSystem),

@@ -1,8 +1,8 @@
 import { NSID } from "@atproto/syntax";
-import { globalContainer } from "./container.ts";
 import { Resolution } from "./node.ts";
 import { NodeRegistry } from "./node-registry.ts";
 import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
+import { bootstrap } from "@needle-di/core";
 
 function assertSuccessfullResolution(
   data: Resolution,
@@ -12,7 +12,7 @@ function assertSuccessfullResolution(
 }
 
 Deno.test("resolves uri", async () => {
-  const registry = globalContainer.get(NodeRegistry);
+  const registry = bootstrap(NodeRegistry);
 
   const resolution = await registry
     .get(NSID.parse("com.atproto.lexicon.schema"))
@@ -26,7 +26,7 @@ Deno.test("resolves uri", async () => {
 });
 
 Deno.test("node children", async () => {
-  const registry = globalContainer.get(NodeRegistry);
+  const registry = bootstrap(NodeRegistry);
 
   const resolution = await registry
     .get(NSID.parse("app.bsky.actor.profile"))
@@ -42,7 +42,7 @@ Deno.test("node children", async () => {
 });
 
 Deno.test.only("registry resolve", async () => {
-  const registry = globalContainer.get(NodeRegistry);
+  const registry = bootstrap(NodeRegistry);
 
   const uris = [];
 

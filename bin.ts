@@ -1,4 +1,4 @@
+import { bootstrap } from "@needle-di/core";
 import { Commands } from "./commands.ts";
-import { globalContainer } from "./container.ts";
 
-await globalContainer.get(Commands).fetch();
+await bootstrap(Commands).fetch();

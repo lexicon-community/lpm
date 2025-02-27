@@ -1,7 +1,14 @@
 import { InjectionToken } from "@needle-di/core";
+import { DidResolver } from "@atproto/identity";
 
-export const AtpFetch = new InjectionToken<typeof fetch>("ATP_FETCH_TOKEN");
+export const AtpFetchToken = new InjectionToken(Symbol("AtpFetch"), {
+  factory: () => fetch,
+});
 
-export const DnsResolver = new InjectionToken<typeof Deno.resolveDns>(
-  "DNS_RESOLVER_TOKEN"
-);
+export const DnsResolverToken = new InjectionToken(Symbol("DnsResolver"), {
+  factory: () => Deno.resolveDns,
+});
+
+export const DidResolverToken = new InjectionToken(Symbol("DidResolver"), {
+  factory: () => new DidResolver({}),
+});

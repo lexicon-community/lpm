@@ -1,21 +1,25 @@
-import { inject } from "@needle-di/core";
-import { AtpFetch, DnsResolver } from "./container-tokens.ts";
+import { inject, injectable } from "@needle-di/core";
+import {
+  AtpFetchToken,
+  DidResolverToken,
+  DnsResolverToken,
+} from "./container-tokens.ts";
 import { Node } from "./node.ts";
-import { DidResolver } from "@atproto/identity";
 import { NSID } from "@atproto/syntax";
 
 type NodeRegistryConfig = {
   maxSize: number;
 };
 
+@injectable()
 export class NodeRegistry {
   #cache = new Map<string, Node>();
 
   constructor(
     public readonly config: NodeRegistryConfig = { maxSize: 150 },
-    private fetch = inject(AtpFetch),
-    private resolveDns = inject(DnsResolver),
-    private didResolver = inject(DidResolver)
+    private fetch = inject(AtpFetchToken),
+    private resolveDns = inject(DnsResolverToken),
+    private didResolver = inject(DidResolverToken)
   ) {}
 
   get(nsid: NSID) {
