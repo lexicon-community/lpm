@@ -105,11 +105,7 @@ function getRefs(doc: LexiconDoc): string[] {
         break;
 
       case "record":
-        refs.push(
-          ...Object.values(def.record.properties).filter(
-            (prop) => prop.type === "ref"
-          )
-        );
+        refs.push(...getObjectRefs(def.record));
         break;
 
       case "query":
@@ -163,11 +159,17 @@ function getRefs(doc: LexiconDoc): string[] {
   ];
 }
 
-function getArrayRefs(arr: LexArray) {
-  return arr.items.type === "ref" ? [arr.items] : [];
+function getArrayRefs(arr: LexArray): LexRefVariant[] {
+  if (arr.items.type === "ref") {
+    return [arr.items];
+  } else if (arr.items.type === "union") {
+    return [arr.items];
+  }
+
+  return [];
 }
 
-function getObjectRefs(obj: LexObject) {
+function getObjectRefs(obj: LexObject): LexRefVariant[] {
   return Object.values(obj.properties).flatMap((prop) => {
     if (prop.type === "ref") return prop;
 
