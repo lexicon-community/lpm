@@ -46,12 +46,13 @@ Deno.test.only("registry resolve", async () => {
 
   const uris = [];
 
-  for await (const node of registry.resolve([
+  for await (const resolution of registry.resolve([
     NSID.parse("community.lexicon.calendar.event"),
   ])) {
-    assertSuccessfullResolution(node);
-    uris.push(node.uri.toString());
-    console.log(node.uri.toString());
+    assertSuccessfullResolution(resolution);
+    uris.push(resolution.uri.toString());
+    console.log(resolution.uri.toString());
+    // console.log(JSON.stringify(resolution, null, 2));
   }
 
   // assertEquals(uris, [

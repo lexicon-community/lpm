@@ -17,6 +17,7 @@ export type Resolution =
       doc: LexiconDoc;
       children: Node[];
       nsid: NSID;
+      cid: string;
     }
   | {
       success: false;
@@ -59,9 +60,14 @@ export class Node {
       rkey: this.nsid.toString(),
     });
 
+    // This fixes an issue with the lexiconDoc schema not expecting the $type field
     delete schemaRecordResponse.data.value.$type;
 
     const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
+
+    if (schemaRecordResponse.data.cid === undefined) {
+      throw new Error("Expected cid to be defined");
+    }
 
     const refs = getRefs(doc);
     const childNsids = refs
@@ -78,6 +84,7 @@ export class Node {
       children: childNsids.map((nsid) => this.registry.get(nsid)),
       doc,
       nsid: this.nsid,
+      cid: schemaRecordResponse.data.cid,
     };
   }
 
