@@ -2,7 +2,7 @@ import {
   AddCommand,
   type CommandDescriptor,
   FetchCommand,
-} from "./commands.ts";
+} from "./src/commands.ts";
 import { Command } from "@cliffy/command";
 import { Container } from "@needle-di/core";
 

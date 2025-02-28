@@ -1,9 +1,9 @@
 import { inject, injectable } from "@needle-di/core";
-import { NodeRegistry } from "./node-registry.ts";
+import { NodeRegistry } from "../src/node-registry.ts";
 import { NSID } from "@atproto/syntax";
 import { ensureFile, emptyDir, exists } from "@std/fs";
 import { type ArgumentValue, Command } from "@cliffy/command";
-import type { Resolution } from "./node.ts";
+import type { Resolution } from "../src/node.ts";
 
 @injectable()
 export class FileSystem {
