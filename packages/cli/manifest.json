@@ -1,3 +1,7 @@
 {
-  "lexicons": ["app.bsky.feed.getPosts", "app.bsky.video.uploadVideo"]
+  "lexicons": [
+    "app.bsky.feed.getPosts",
+    "app.bsky.video.uploadVideo",
+    "app.bsky.actor.profile"
+  ]
 }

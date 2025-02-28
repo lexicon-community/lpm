@@ -1,4 +1,8 @@
-import { FetchCommand } from "./commands.ts";
+import {
+  AddCommand,
+  type CommandDescriptor,
+  FetchCommand,
+} from "./commands.ts";
 import { Command } from "@cliffy/command";
 import { Container } from "@needle-di/core";
 
@@ -9,12 +13,13 @@ const bin = new Command()
     console.log(bin.getHelp());
   });
 
-const commands = [FetchCommand];
+const commands = [FetchCommand, AddCommand];
 
 const container = new Container();
 
 for (const cmd of commands) {
-  const instance = container.get(cmd);
+  // deno-lint-ignore no-explicit-any
+  const instance = container.get(cmd as any) as CommandDescriptor;
   bin.command(instance.name, instance.command);
 }
 

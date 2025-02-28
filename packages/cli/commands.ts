@@ -1,8 +1,9 @@
 import { inject, injectable } from "@needle-di/core";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSID } from "@atproto/syntax";
-import { ensureFile, emptyDir } from "@std/fs";
-import { Command } from "@cliffy/command";
+import { ensureFile, emptyDir, exists } from "@std/fs";
+import { type ArgumentValue, Command } from "@cliffy/command";
+import type { Resolution } from "./node.ts";
 
 @injectable()
 export class FileSystem {
@@ -14,25 +15,61 @@ export class FileSystem {
     return Deno.readTextFile(path);
   }
 
+  exists(path: string) {
+    return exists(path);
+  }
+
   cwd() {
     return Deno.cwd();
   }
 }
 
+@injectable()
+class ResolutionsDir {
+  constructor(private fs = inject(FileSystem)) {}
+
+  async writeResolution(resolution: Extract<Resolution, { success: true }>) {
+    const manifestDir = this.fs.cwd();
+    if (!manifestDir) {
+      throw new Error("Could not determine manifest directory");
+    }
+
+    const path = `${manifestDir}/lexicons/${resolution.nsid.segments.join(
+      "/"
+    )}.json`;
+    await ensureFile(path);
+    await this.fs.writeText(path, JSON.stringify(resolution.doc, null, 2));
+  }
+}
+
 export type CommandDescriptor = {
-  command: Command;
+  // deno-lint-ignore no-explicit-any
+  command: Command<any>;
   name: string;
 };
+
+function nsidType({ label, name, value }: ArgumentValue): NSID {
+  if (!NSID.isValid(value)) {
+    throw new Error(
+      `${label} "${name}" must be a valid NSID, but got "${value}"`
+    );
+  }
+
+  return NSID.parse(value);
+}
 
 @injectable()
 export class FetchCommand implements CommandDescriptor {
   constructor(
     private fs = inject(FileSystem),
-    private registry = inject(NodeRegistry)
+    private registry = inject(NodeRegistry),
+    private resolutionsDir = inject(ResolutionsDir)
   ) {}
 
   name = "fetch";
-  command = new Command().action(() => this.#action());
+  command = new Command()
+    .description("Fetch and install lexicons from the manifest.")
+    .action(() => this.#action());
 
   async #action() {
     // TODO: Configure this
@@ -52,13 +89,49 @@ export class FetchCommand implements CommandDescriptor {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
       }
-      const path = `${manifestDir}/lexicons/${resolution.nsid.segments.join(
-        "/"
-      )}.json`;
 
-      await ensureFile(path);
-      await this.fs.writeText(path, JSON.stringify(resolution.doc, null, 2));
-      console.log("wrote ", `${resolution.nsid.segments.join("/")}.json`);
+      await this.resolutionsDir.writeResolution(resolution);
+    }
+  }
+}
+
+@injectable()
+export class AddCommand implements CommandDescriptor {
+  constructor(
+    private fs = inject(FileSystem),
+    private registry = inject(NodeRegistry),
+    private resolutionsDir = inject(ResolutionsDir)
+  ) {}
+
+  name = "add";
+  command = new Command()
+    .description("Add a lexicon to the manifest and fetch it.")
+    .type("nsid", nsidType)
+    .arguments("<nsid:nsid>")
+    .action((_, nsid: NSID) => this.#action(nsid));
+
+  async #action(nsid: NSID) {
+    const manifestDir = this.fs.cwd();
+    if (!manifestDir) {
+      throw new Error("Could not determine manifest directory");
+    }
+    const manifestPath = manifestDir + "/manifest.json";
+
+    const manifest = (await this.fs.exists(manifestPath))
+      ? JSON.parse(await this.fs.readText(manifestPath))
+      : { lexicons: [] };
+
+    manifest.lexicons.push(nsid.toString());
+
+    await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
+
+    for await (const resolution of this.registry.resolve([nsid])) {
+      if (!resolution.success) {
+        console.error("failed to resolve ", resolution.errorCode);
+        continue;
+      }
+
+      await this.resolutionsDir.writeResolution(resolution);
     }
   }
 }
