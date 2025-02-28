@@ -1,10 +1,12 @@
 {
+  "version": "0.1.0",
   "imports": {
     "@atproto/api": "npm:@atproto/api@0.14.6",
     "@atproto/identity": "npm:@atproto/identity@0.4.6",
     "@atproto/lexicon": "npm:@atproto/lexicon",
     "@atproto/syntax": "npm:@atproto/syntax@0.3.3",
     "@needle-di/core": "npm:@needle-di/core@0.11.2",
-    "p-queue": "npm:p-queue"
+    "p-queue": "npm:p-queue",
+    "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7"
   }
 }

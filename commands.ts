@@ -25,7 +25,6 @@ export class Commands {
     // TODO: Configure this
     const manifestDir = import.meta.dirname;
     const manifestPath = manifestDir + "/manifest.json";
-
     const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
       (nsid: string) => NSID.parse(nsid)
     );
