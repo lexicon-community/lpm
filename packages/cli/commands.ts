@@ -1,7 +1,7 @@
 import { inject, injectable } from "@needle-di/core";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSID } from "@atproto/syntax";
-import { ensureFile, emptyDir } from "jsr:@std/fs";
+import { ensureFile, emptyDir } from "@std/fs";
 import { Command } from "@cliffy/command";
 
 @injectable()

@@ -7,14 +7,15 @@
     "jsr:@cliffy/table@1.0.0-rc.7": "1.0.0-rc.7",
     "jsr:@std/fmt@~1.0.2": "1.0.5",
     "jsr:@std/fs@*": "1.0.13",
+    "jsr:@std/fs@1.0.13": "1.0.13",
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/text@~1.0.7": "1.0.10",
     "npm:@atproto/api@0.14.6": "0.14.6",
     "npm:@atproto/identity@0.4.6": "0.4.6",
     "npm:@atproto/lexicon@*": "0.4.7",
+    "npm:@atproto/lexicon@0.4.7": "0.4.7",
     "npm:@atproto/syntax@0.3.3": "0.3.3",
-    "npm:@needle-di/core@0.11.2": "0.11.2",
-    "npm:p-queue@*": "8.1.0"
+    "npm:@needle-di/core@0.11.2": "0.11.2"
   },
   "jsr": {
     "@cliffy/command@1.0.0-rc.7": {
@@ -131,9 +132,6 @@
     "await-lock@2.2.2": {
       "integrity": "sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw=="
     },
-    "eventemitter3@5.0.1": {
-      "integrity": "sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA=="
-    },
     "graphemer@1.4.0": {
       "integrity": "sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag=="
     },
@@ -142,16 +140,6 @@
     },
     "multiformats@9.9.0": {
       "integrity": "sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg=="
-    },
-    "p-queue@8.1.0": {
-      "integrity": "sha512-mxLDbbGIBEXTJL0zEx8JIylaj3xQ7Z/7eEVjcF9fJX4DBiH9oqe+oahYnlKKxm0Ci9TlWTyhSHgygxMxjIB2jw==",
-      "dependencies": [
-        "eventemitter3",
-        "p-timeout"
-      ]
-    },
-    "p-timeout@6.1.4": {
-      "integrity": "sha512-MyIV3ZA/PmyBN/ud8vV9XzwTrNtR4jFrObymZYnZqMmW0zA8Z17vnT0rBgFE/TlohB+YCHqXMgZzb3Csp49vqg=="
     },
     "tlds@1.255.0": {
       "integrity": "sha512-tcwMRIioTcF/FcxLev8MJWxCp+GUALRhFEqbDoZrnowmKSGqPrl5pqS+Sut2m8BgJ6S4FExCSSpGffZ0Tks6Aw=="
@@ -171,12 +159,12 @@
       "packages/cli": {
         "dependencies": [
           "jsr:@cliffy/command@1.0.0-rc.7",
+          "jsr:@std/fs@1.0.13",
           "npm:@atproto/api@0.14.6",
           "npm:@atproto/identity@0.4.6",
-          "npm:@atproto/lexicon@*",
+          "npm:@atproto/lexicon@0.4.7",
           "npm:@atproto/syntax@0.3.3",
-          "npm:@needle-di/core@0.11.2",
-          "npm:p-queue@*"
+          "npm:@needle-di/core@0.11.2"
         ]
       }
     }
