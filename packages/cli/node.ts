@@ -1,14 +1,14 @@
 import { AtUri, NSID } from "@atproto/syntax";
 import {
-  LexArray,
+  type LexArray,
   lexiconDoc,
-  LexiconDoc,
-  LexObject,
-  LexRefVariant,
+  type LexiconDoc,
+  type LexObject,
+  type LexRefVariant,
 } from "@atproto/lexicon";
 import { AtpBaseClient } from "@atproto/api";
-import { DidResolver } from "@atproto/identity";
-import { NodeRegistry } from "./node-registry.ts";
+import type { DidResolver } from "@atproto/identity";
+import type { NodeRegistry } from "./node-registry.ts";
 
 export type Resolution =
   | {

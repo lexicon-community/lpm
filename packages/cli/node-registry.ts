@@ -5,7 +5,7 @@ import {
   DnsResolverToken,
 } from "./container-tokens.ts";
 import { Node } from "./node.ts";
-import { NSID } from "@atproto/syntax";
+import type { NSID } from "@atproto/syntax";
 
 type NodeRegistryConfig = {
   maxSize: number;
