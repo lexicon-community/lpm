@@ -172,7 +172,12 @@ function getRefs(doc: LexiconDoc): string[] {
         break;
 
       default:
-        console.warn(`Unexpected def type: ${def.type}`);
+        throw new Error(
+          `Unexpected def type: ${
+            // @ts-expect-error Exhaustative check
+            def.type
+          }`
+        );
     }
   }
 
