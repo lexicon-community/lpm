@@ -72,17 +72,28 @@ export class Node {
 
     const childNsids = [];
     const unresolvedRefs = [];
-    for (const ref of getRefs(doc)) {
-      // Filter out internal references
-      if (ref.startsWith("#") || ref.split("#")[0] === this.nsid.toString()) {
-        continue;
-      }
 
+    const externalRefs = [
+      ...new Set(
+        getRefs(doc)
+          .filter(
+            (ref) =>
+              !ref.startsWith("#") && ref.split("#")[0] !== this.nsid.toString()
+          )
+          .map((ref) => ref.split("#")[0])
+      ),
+    ];
+
+    for (const ref of externalRefs) {
       if (NSID.isValid(ref)) {
         childNsids.push(NSID.parse(ref));
       } else {
         unresolvedRefs.push(ref);
       }
+    }
+
+    if (unresolvedRefs.length > 0) {
+      console.warn(`Unresolved refs: ${unresolvedRefs.join(", ")}`);
     }
 
     return {
@@ -157,11 +168,6 @@ function getRefs(doc: LexiconDoc): string[] {
       }
 
       case "string":
-        if (def.knownValues) {
-          refs.push(...def.knownValues);
-        }
-        break;
-
       case "token":
       case "blob":
       case "boolean":
@@ -187,8 +193,8 @@ function getRefs(doc: LexiconDoc): string[] {
         typeof ref === "string"
           ? [ref]
           : ref.type === "ref"
-          ? [ref.ref.split("#")[0]!]
-          : ref.refs.map((ref) => ref.split("#")[0]!)
+          ? [ref.ref]
+          : ref.refs
       )
     ),
   ];

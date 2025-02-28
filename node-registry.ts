@@ -71,9 +71,6 @@ export class NodeRegistry {
       );
 
       for (const resolution of resolutions) {
-        const node = currentBatch.shift()!;
-        seenNodeNsids.add(node.nsid.toString());
-
         if (resolution.success) {
           const children = resolution.children.filter(
             (child) => !seenNodeNsids.has(child.nsid.toString())
@@ -81,9 +78,9 @@ export class NodeRegistry {
           children.forEach((child) => {
             seenNodeNsids.add(child.nsid.toString());
           });
+
           queue.push(...children);
         }
-
         yield resolution;
       }
     }
