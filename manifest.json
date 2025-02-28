@@ -1,3 +1,3 @@
 {
-  "lexicons": ["app.bsky.feed.getPosts"]
+  "lexicons": ["app.bsky.feed.getPosts", "app.bsky.video.uploadVideo"]
 }

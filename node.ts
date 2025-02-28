@@ -109,7 +109,6 @@ function getRefs(doc: LexiconDoc): string[] {
   const refs: (LexRefVariant | string)[] = [];
 
   for (const def of Object.values(doc.defs)) {
-    // console.log(def);
     switch (def.type) {
       case "array":
         refs.push(...getArrayRefs(def));
@@ -123,37 +122,53 @@ function getRefs(doc: LexiconDoc): string[] {
         refs.push(...getObjectRefs(def.record));
         break;
 
-      case "query":
-        switch (def.output?.schema?.type) {
+      case "subscription":
+      case "procedure":
+      case "query": {
+        const schema =
+          def.type === "subscription"
+            ? def.message?.schema
+            : def.output?.schema;
+        switch (schema?.type) {
+          case undefined:
+            break;
+
           case "object":
-            refs.push(...getObjectRefs(def.output.schema));
+            refs.push(...getObjectRefs(schema));
             break;
 
           case "ref":
-            refs.push(def.output.schema);
+            refs.push(schema);
             break;
 
           case "union":
-            refs.push(def.output?.schema);
-            break;
-
-          case undefined:
+            refs.push(schema);
             break;
 
           default:
             throw new Error(
-              `Unexpected query output.schema type: ${
+              `Unexpected ${def.type} output.schema type: ${
                 // @ts-expect-error exhaustative check
-                def.output?.schema?.type
+                schema?.type
               }`
             );
         }
         break;
+      }
 
       case "string":
         if (def.knownValues) {
           refs.push(...def.knownValues);
         }
+        break;
+
+      case "token":
+      case "blob":
+      case "boolean":
+      case "bytes":
+      case "cid-link":
+      case "integer":
+      case "unknown":
         break;
 
       default:
