@@ -1,7 +1,7 @@
 import { inject, injectable } from "@needle-di/core";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSID } from "@atproto/syntax";
-import { ensureFile } from "jsr:@std/fs";
+import { ensureFile, emptyDir } from "jsr:@std/fs";
 
 @injectable()
 export class FileSystem {
@@ -24,10 +24,15 @@ export class Commands {
   async fetch() {
     // TODO: Configure this
     const manifestDir = import.meta.dirname;
+    if (!manifestDir) {
+      throw new Error("Could not determine manifest directory");
+    }
     const manifestPath = manifestDir + "/manifest.json";
     const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
       (nsid: string) => NSID.parse(nsid)
     );
+
+    await emptyDir(`${manifestDir}/lexicons`);
 
     for await (const resolution of this.registry.resolve(nsids)) {
       if (!resolution.success) {
