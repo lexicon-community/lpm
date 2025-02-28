@@ -1,13 +1,6 @@
 # lpm
 
-manifest.json:
-
-```json
-{
-  "lexicons": ["app.bsky.feed.getPosts", "app.bsky.video.uploadVideo"]
-}
 ```
-
-```
+lpm add app.bsky.feed.getPosts
 lpm fetch
 ```
