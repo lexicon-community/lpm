@@ -70,9 +70,6 @@ export class Node {
       throw new Error("Expected cid to be defined");
     }
 
-    const childNsids = [];
-    const unresolvedRefs = [];
-
     const externalRefs = [
       ...new Set(
         getRefs(doc)
@@ -83,6 +80,9 @@ export class Node {
           .map((ref) => ref.split("#")[0])
       ),
     ];
+
+    const childNsids = [];
+    const unresolvedRefs = [];
 
     for (const ref of externalRefs) {
       if (NSID.isValid(ref)) {
