@@ -10,12 +10,11 @@
     "jsr:@std/fs@1.0.13": "1.0.13",
     "jsr:@std/path@^1.0.8": "1.0.8",
     "jsr:@std/text@~1.0.7": "1.0.10",
-    "npm:@atproto/api@0.14.6": "0.14.6",
-    "npm:@atproto/identity@0.4.6": "0.4.6",
-    "npm:@atproto/lexicon@*": "0.4.7",
-    "npm:@atproto/lexicon@0.4.7": "0.4.7",
-    "npm:@atproto/syntax@0.3.3": "0.3.3",
-    "npm:@needle-di/core@0.11.2": "0.11.2"
+    "npm:@atproto/api@~0.14.6": "0.14.7",
+    "npm:@atproto/identity@~0.4.6": "0.4.6",
+    "npm:@atproto/lexicon@~0.4.7": "0.4.7",
+    "npm:@atproto/syntax@~0.3.3": "0.3.3",
+    "npm:@needle-di/core@~0.11.2": "0.11.2"
   },
   "jsr": {
     "@cliffy/command@1.0.0-rc.7": {
@@ -60,8 +59,8 @@
     }
   },
   "npm": {
-    "@atproto/api@0.14.6": {
-      "integrity": "sha512-v0NppALgBa62O7cItDmhPwv6pyt4ClfOvcfaWh+wfTW877D9Em6rFrelY5p54yiWdqRUfgbTTD2plynLKUFQJQ==",
+    "@atproto/api@0.14.7": {
+      "integrity": "sha512-YG2kvAtsgtajLlLrorYuHcxGgepG0c/RUB2/iJyBnwKjGqDLG8joOETf38JSNiGzs6NJbNKa9NHG6BQKourxBA==",
       "dependencies": [
         "@atproto/common-web",
         "@atproto/lexicon",
@@ -150,8 +149,8 @@
         "multiformats"
       ]
     },
-    "zod@3.24.1": {
-      "integrity": "sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A=="
+    "zod@3.24.2": {
+      "integrity": "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="
     }
   },
   "workspace": {
@@ -160,17 +159,17 @@
         "dependencies": [
           "jsr:@cliffy/command@1.0.0-rc.7",
           "jsr:@std/fs@1.0.13",
-          "npm:@atproto/syntax@0.3.3",
-          "npm:@needle-di/core@0.11.2"
+          "npm:@atproto/syntax@~0.3.3",
+          "npm:@needle-di/core@~0.11.2"
         ]
       },
       "packages/core": {
         "dependencies": [
-          "npm:@atproto/api@0.14.6",
-          "npm:@atproto/identity@0.4.6",
-          "npm:@atproto/lexicon@0.4.7",
-          "npm:@atproto/syntax@0.3.3",
-          "npm:@needle-di/core@0.11.2"
+          "npm:@atproto/api@~0.14.6",
+          "npm:@atproto/identity@~0.4.6",
+          "npm:@atproto/lexicon@~0.4.7",
+          "npm:@atproto/syntax@~0.3.3",
+          "npm:@needle-di/core@~0.11.2"
         ]
       }
     }
