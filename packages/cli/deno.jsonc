@@ -8,7 +8,6 @@
     "@atproto/syntax": "npm:@atproto/syntax@0.3.3",
     "@needle-di/core": "npm:@needle-di/core@0.11.2",
     "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
-    "@std/fs": "jsr:@std/fs@1.0.13",
-    "@repo/core": "../core/mod.ts"
+    "@std/fs": "jsr:@std/fs@1.0.13"
   }
 }

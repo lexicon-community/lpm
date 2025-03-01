@@ -1,5 +1,5 @@
 import { inject, injectable } from "@needle-di/core";
-import { NodeRegistry, type Resolution } from "@repo/core";
+import { NodeRegistry, type Resolution } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
 import { ensureFile, emptyDir, exists } from "@std/fs";
 import { type ArgumentValue, Command } from "@cliffy/command";
