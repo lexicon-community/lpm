@@ -160,6 +160,11 @@
         "dependencies": [
           "jsr:@cliffy/command@1.0.0-rc.7",
           "jsr:@std/fs@1.0.13",
+          "npm:@needle-di/core@0.11.2"
+        ]
+      },
+      "packages/core": {
+        "dependencies": [
           "npm:@atproto/api@0.14.6",
           "npm:@atproto/identity@0.4.6",
           "npm:@atproto/lexicon@0.4.7",
