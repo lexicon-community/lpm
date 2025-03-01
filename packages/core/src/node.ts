@@ -1,8 +1,8 @@
 import { AtUri, NSID } from "@atproto/syntax";
 import {
   type LexArray,
-  lexiconDoc,
   type LexiconDoc,
+  lexiconDoc,
   type LexObject,
   type LexRefVariant,
 } from "@atproto/lexicon";
@@ -12,18 +12,18 @@ import type { NodeRegistry } from "./node-registry.ts";
 
 export type Resolution =
   | {
-      success: true;
-      uri: AtUri;
-      doc: LexiconDoc;
-      children: Node[];
-      nsid: NSID;
-      cid: string;
-      unresolvedRefs: string[];
-    }
+    success: true;
+    uri: AtUri;
+    doc: LexiconDoc;
+    children: Node[];
+    nsid: NSID;
+    cid: string;
+    unresolvedRefs: string[];
+  }
   | {
-      success: false;
-      errorCode: "NO_AUTHORITY" | "AUTHORITY_INVALID" | "RECORD_NOT_FOUND";
-    };
+    success: false;
+    errorCode: "NO_AUTHORITY" | "AUTHORITY_INVALID" | "RECORD_NOT_FOUND";
+  };
 
 export class Node {
   #data: null | Promise<Resolution> = null;
@@ -33,20 +33,20 @@ export class Node {
     private registry: NodeRegistry,
     private fetch: typeof globalThis.fetch,
     private resolveDns: typeof Deno.resolveDns,
-    private didResolver: DidResolver
+    private didResolver: DidResolver,
   ) {}
 
   async #internalResolve(): Promise<Resolution> {
     const record = await this.resolveDns(
       `_lexicon.${this.nsid.authority}`,
-      "TXT"
+      "TXT",
     );
 
     const authorityDid = record.join("").replace(/^did=/, "");
     const uri = AtUri.make(
       authorityDid,
       "com.atproto.lexicon.schema",
-      this.nsid.toString()
+      this.nsid.toString(),
     );
 
     const pds = (await this.didResolver.resolveAtprotoData(authorityDid)).pds;
@@ -75,9 +75,10 @@ export class Node {
         getRefs(doc)
           .filter(
             (ref) =>
-              !ref.startsWith("#") && ref.split("#")[0] !== this.nsid.toString()
+              !ref.startsWith("#") &&
+              ref.split("#")[0] !== this.nsid.toString(),
           )
-          .map((ref) => ref.split("#")[0])
+          .map((ref) => ref.split("#")[0]),
       ),
     ];
 
@@ -136,10 +137,9 @@ function getRefs(doc: LexiconDoc): string[] {
       case "subscription":
       case "procedure":
       case "query": {
-        const schema =
-          def.type === "subscription"
-            ? def.message?.schema
-            : def.output?.schema;
+        const schema = def.type === "subscription"
+          ? def.message?.schema
+          : def.output?.schema;
         switch (schema?.type) {
           case undefined:
             break;
@@ -160,8 +160,7 @@ function getRefs(doc: LexiconDoc): string[] {
             throw new Error(
               `Unexpected ${def.type} output.schema type: ${
                 // @ts-expect-error exhaustative check
-                schema?.type
-              }`
+                schema?.type}`,
             );
         }
         break;
@@ -181,8 +180,7 @@ function getRefs(doc: LexiconDoc): string[] {
         throw new Error(
           `Unexpected def type: ${
             // @ts-expect-error Exhaustative check
-            def.type
-          }`
+            def.type}`,
         );
     }
   }
@@ -195,7 +193,7 @@ function getRefs(doc: LexiconDoc): string[] {
           : ref.type === "ref"
           ? [ref.ref]
           : ref.refs
-      )
+      ),
     ),
   ];
 }

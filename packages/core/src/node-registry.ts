@@ -27,7 +27,7 @@ export class NodeRegistry {
     public readonly config: NodeRegistryConfig = { maxSize: 150 },
     private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
     private resolveDns: typeof Deno.resolveDns = inject(DnsResolverToken),
-    private didResolver: DidResolver = inject(DidResolverToken)
+    private didResolver: DidResolver = inject(DidResolverToken),
   ) {}
 
   get(nsid: NSID): Node {
@@ -46,7 +46,7 @@ export class NodeRegistry {
       this,
       this.fetch,
       this.resolveDns,
-      this.didResolver
+      this.didResolver,
     );
     this.#cache.set(nsidStr, node);
     return node;
@@ -57,7 +57,7 @@ export class NodeRegistry {
     const roots = nsids.map((nsid) => this.get(nsid));
 
     const rootResolutions = await Promise.all(
-      roots.map((root) => root.resolve())
+      roots.map((root) => root.resolve()),
     );
 
     yield* rootResolutions;
@@ -75,13 +75,13 @@ export class NodeRegistry {
     while (queue.length > 0) {
       const currentBatch = queue.splice(0, queue.length);
       const resolutions = await Promise.all(
-        currentBatch.map((node) => node.resolve())
+        currentBatch.map((node) => node.resolve()),
       );
 
       for (const resolution of resolutions) {
         if (resolution.success) {
           const children = resolution.children.filter(
-            (child) => !seenNodeNsids.has(child.nsid.toString())
+            (child) => !seenNodeNsids.has(child.nsid.toString()),
           );
           children.forEach((child) => {
             seenNodeNsids.add(child.nsid.toString());

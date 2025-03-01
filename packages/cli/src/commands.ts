@@ -1,7 +1,7 @@
 import { inject, injectable } from "@needle-di/core";
 import { NodeRegistry, type Resolution } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
-import { ensureFile, emptyDir, exists } from "@std/fs";
+import { emptyDir, ensureFile, exists } from "@std/fs";
 import { type ArgumentValue, Command } from "@cliffy/command";
 
 @injectable()
@@ -33,9 +33,11 @@ class ResolutionsDir {
       throw new Error("Could not determine manifest directory");
     }
 
-    const path = `${manifestDir}/lexicons/${resolution.nsid.segments.join(
-      "/"
-    )}.json`;
+    const path = `${manifestDir}/lexicons/${
+      resolution.nsid.segments.join(
+        "/",
+      )
+    }.json`;
     await ensureFile(path);
     await this.fs.writeText(path, JSON.stringify(resolution.doc, null, 2));
   }
@@ -50,7 +52,7 @@ export type CommandDescriptor = {
 function nsidType({ label, name, value }: ArgumentValue): NSID {
   if (!NSID.isValid(value)) {
     throw new Error(
-      `${label} "${name}" must be a valid NSID, but got "${value}"`
+      `${label} "${name}" must be a valid NSID, but got "${value}"`,
     );
   }
 
@@ -62,7 +64,7 @@ export class FetchCommand implements CommandDescriptor {
   constructor(
     private fs = inject(FileSystem),
     private registry = inject(NodeRegistry),
-    private resolutionsDir = inject(ResolutionsDir)
+    private resolutionsDir = inject(ResolutionsDir),
   ) {}
 
   name = "fetch";
@@ -78,7 +80,7 @@ export class FetchCommand implements CommandDescriptor {
     }
     const manifestPath = manifestDir + "/manifest.json";
     const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
-      (nsid: string) => NSID.parse(nsid)
+      (nsid: string) => NSID.parse(nsid),
     );
 
     await emptyDir(`${manifestDir}/lexicons`);
@@ -99,7 +101,7 @@ export class AddCommand implements CommandDescriptor {
   constructor(
     private fs = inject(FileSystem),
     private registry = inject(NodeRegistry),
-    private resolutionsDir = inject(ResolutionsDir)
+    private resolutionsDir = inject(ResolutionsDir),
   ) {}
 
   name = "add";

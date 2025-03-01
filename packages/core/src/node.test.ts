@@ -6,7 +6,7 @@ import { bootstrap } from "@needle-di/core";
 
 function assertSuccessfullResolution(
   data: Resolution,
-  msg?: string
+  msg?: string,
 ): asserts data is Resolution & { success: true } {
   assertObjectMatch(data, { success: true }, msg);
 }
@@ -21,7 +21,7 @@ Deno.test("resolves uri", async () => {
   assertSuccessfullResolution(resolution);
   assertEquals(
     resolution.uri.toString(),
-    "at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/com.atproto.lexicon.schema"
+    "at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/com.atproto.lexicon.schema",
   );
 });
 
@@ -37,7 +37,7 @@ Deno.test("node children", async () => {
   assertEquals(resolution.children.length, 1);
   assertEquals(
     resolution.children[0].nsid.toString(),
-    "com.atproto.repo.strongRef"
+    "com.atproto.repo.strongRef",
   );
 });
 
@@ -46,9 +46,11 @@ Deno.test.only("registry resolve", async () => {
 
   const uris = [];
 
-  for await (const resolution of registry.resolve([
-    NSID.parse("community.lexicon.calendar.event"),
-  ])) {
+  for await (
+    const resolution of registry.resolve([
+      NSID.parse("community.lexicon.calendar.event"),
+    ])
+  ) {
     assertSuccessfullResolution(resolution);
     uris.push(resolution.uri.toString());
     console.log(resolution.uri.toString());
