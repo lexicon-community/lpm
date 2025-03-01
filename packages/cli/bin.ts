@@ -2,16 +2,12 @@ import {
   AddCommand,
   type CommandDescriptor,
   FetchCommand,
-  FileSystem,
 } from "./src/commands.ts";
 import { Command } from "@cliffy/command";
 import { Container } from "@needle-di/core";
+import pkg from "./deno.json" with { type: "json" };
 
 const container = new Container();
-
-const pkg = JSON.parse(
-  await container.get(FileSystem).readText(import.meta.dirname + "/deno.json")
-);
 
 const bin = new Command()
   .name("lpm")
