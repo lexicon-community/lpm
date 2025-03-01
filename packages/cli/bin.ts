@@ -2,20 +2,25 @@ import {
   AddCommand,
   type CommandDescriptor,
   FetchCommand,
+  FileSystem,
 } from "./src/commands.ts";
 import { Command } from "@cliffy/command";
 import { Container } from "@needle-di/core";
 
+const container = new Container();
+
+const pkg = JSON.parse(
+  await container.get(FileSystem).readText(import.meta.dirname + "/deno.json")
+);
+
 const bin = new Command()
   .name("lpm")
-  .version("0.1.0")
+  .version(pkg.version)
   .action(() => {
     console.log(bin.getHelp());
   });
 
 const commands = [FetchCommand, AddCommand];
-
-const container = new Container();
 
 for (const cmd of commands) {
   // deno-lint-ignore no-explicit-any
