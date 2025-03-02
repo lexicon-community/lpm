@@ -7,8 +7,8 @@ import {
   type LexRefVariant,
 } from "@atproto/lexicon";
 import { AtpBaseClient } from "@atproto/api";
-import type { DidResolver } from "@atproto/identity";
 import type { NodeRegistry } from "./node-registry.ts";
+import type { NSIDAuthorityService } from "./nsid-authority.ts";
 
 export type Resolution =
   | {
@@ -32,31 +32,27 @@ export class Node {
     public readonly nsid: NSID,
     private registry: NodeRegistry,
     private fetch: typeof globalThis.fetch,
-    private resolveDns: typeof Deno.resolveDns,
-    private didResolver: DidResolver,
+    private nsidAuthorityService: NSIDAuthorityService,
   ) {}
 
   async #internalResolve(): Promise<Resolution> {
-    const record = await this.resolveDns(
-      `_lexicon.${this.nsid.authority}`,
-      "TXT",
-    );
+    const authority = await this.nsidAuthorityService.resolve(this.nsid);
+    if (!authority) {
+      return { success: false, errorCode: "NO_AUTHORITY" };
+    }
 
-    const authorityDid = record.join("").replace(/^did=/, "");
     const uri = AtUri.make(
-      authorityDid,
+      authority.did,
       "com.atproto.lexicon.schema",
       this.nsid.toString(),
     );
 
-    const pds = (await this.didResolver.resolveAtprotoData(authorityDid)).pds;
-
     const client = new AtpBaseClient((input, init) =>
-      this.fetch(new URL(input, pds), init)
+      this.fetch(new URL(input, authority.pds), init)
     );
 
     const schemaRecordResponse = await client.com.atproto.repo.getRecord({
-      repo: authorityDid,
+      repo: authority.did,
       collection: "com.atproto.lexicon.schema",
       rkey: this.nsid.toString(),
     });

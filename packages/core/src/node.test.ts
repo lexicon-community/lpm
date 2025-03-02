@@ -48,7 +48,7 @@ Deno.test.only("registry resolve", async () => {
 
   for await (
     const resolution of registry.resolve([
-      NSID.parse("community.lexicon.calendar.event"),
+      registry.get(NSID.parse("community.lexicon.calendar.event")),
     ])
   ) {
     assertSuccessfullResolution(resolution);

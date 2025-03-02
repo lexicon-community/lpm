@@ -1,19 +1,8 @@
-import { inject, injectable, InjectionToken } from "@needle-di/core";
+import { inject, injectable } from "@needle-di/core";
 import { Node, type Resolution } from "./node.ts";
 import type { NSID } from "@atproto/syntax";
-import { DidResolver } from "@atproto/identity";
-
-const AtpFetchToken = new InjectionToken(Symbol("AtpFetch"), {
-  factory: () => fetch,
-});
-
-const DnsResolverToken = new InjectionToken(Symbol("DnsResolver"), {
-  factory: () => Deno.resolveDns,
-});
-
-const DidResolverToken = new InjectionToken(Symbol("DidResolver"), {
-  factory: () => new DidResolver({}),
-});
+import { NSIDAuthorityService } from "./nsid-authority.ts";
+import { AtpFetchToken } from "./fetch.ts";
 
 type NodeRegistryConfig = {
   maxSize: number;
@@ -26,8 +15,7 @@ export class NodeRegistry {
   constructor(
     public readonly config: NodeRegistryConfig = { maxSize: 150 },
     private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
-    private resolveDns: typeof Deno.resolveDns = inject(DnsResolverToken),
-    private didResolver: DidResolver = inject(DidResolverToken),
+    private nsidAuthority: NSIDAuthorityService = inject(NSIDAuthorityService),
   ) {}
 
   get(nsid: NSID): Node {
@@ -45,16 +33,14 @@ export class NodeRegistry {
       nsid,
       this,
       this.fetch,
-      this.resolveDns,
-      this.didResolver,
+      this.nsidAuthority,
     );
     this.#cache.set(nsidStr, node);
     return node;
   }
 
-  async *resolve(nsids: NSID[]): AsyncIterable<Resolution> {
+  async *resolve(roots: Node[]): AsyncIterable<Resolution> {
     const seenNodeNsids = new Set<string>();
-    const roots = nsids.map((nsid) => this.get(nsid));
 
     const rootResolutions = await Promise.all(
       roots.map((root) => root.resolve()),

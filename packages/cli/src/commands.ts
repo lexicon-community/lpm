@@ -1,5 +1,10 @@
 import { inject, injectable } from "@needle-di/core";
-import { NodeRegistry, type Resolution } from "@lpm/core";
+import {
+  NodeRegistry,
+  NSIDPattern,
+  NSIDPatternResolver,
+  type Resolution,
+} from "@lpm/core";
 import { NSID } from "@atproto/syntax";
 import { emptyDir, ensureFile, exists } from "@std/fs";
 import { type ArgumentValue, Command } from "@cliffy/command";
@@ -49,11 +54,17 @@ export type CommandDescriptor = {
   name: string;
 };
 
-function nsidType({ label, name, value }: ArgumentValue): NSID {
+function nsidOrPatternType(
+  { label, name, value }: ArgumentValue,
+): NSID | NSIDPattern {
   if (!NSID.isValid(value)) {
-    throw new Error(
-      `${label} "${name}" must be a valid NSID, but got "${value}"`,
-    );
+    try {
+      return new NSIDPattern(value);
+    } catch (_) {
+      throw new Error(
+        `${label} "${name}" must be a valid NSID or NSIDPattern, but got "${value}"`,
+      );
+    }
   }
 
   return NSID.parse(value);
@@ -102,16 +113,21 @@ export class AddCommand implements CommandDescriptor {
     private fs = inject(FileSystem),
     private registry = inject(NodeRegistry),
     private resolutionsDir = inject(ResolutionsDir),
+    private nsidPatternResolver = inject(NSIDPatternResolver),
   ) {}
 
   name = "add";
   command = new Command()
-    .description("Add a lexicon to the manifest and fetch it.")
-    .type("nsid", nsidType)
+    .description(
+      "Add a lexicon to the manifest and fetch it. Supports either fully qualified NSIDs or NSID patterns.",
+    )
+    .example("Using NSID", "lpm add app.bsky.actor.profile")
+    .example("Using NSID pattern", "lpm add 'app.bsky.actor.*'")
+    .type("nsid", nsidOrPatternType)
     .arguments("<nsid:nsid>")
-    .action((_, nsid: NSID) => this.#action(nsid));
+    .action((_, nsid) => this.#action(nsid));
 
-  async #action(nsid: NSID) {
+  async #action(nsidOrPattern: NSID | NSIDPattern) {
     const manifestDir = this.fs.cwd();
     if (!manifestDir) {
       throw new Error("Could not determine manifest directory");
@@ -122,11 +138,16 @@ export class AddCommand implements CommandDescriptor {
       ? JSON.parse(await this.fs.readText(manifestPath))
       : { lexicons: [] };
 
-    manifest.lexicons.push(nsid.toString());
+    const nodesToAdd = nsidOrPattern instanceof NSIDPattern
+      ? await this.nsidPatternResolver.resolvePattern(
+        nsidOrPattern,
+      )
+      : [this.registry.get(nsidOrPattern)];
 
+    manifest.lexicons.push(...nodesToAdd.map((node) => node.nsid.toString()));
     await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
 
-    for await (const resolution of this.registry.resolve([nsid])) {
+    for await (const resolution of this.registry.resolve(nodesToAdd)) {
       if (!resolution.success) {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
