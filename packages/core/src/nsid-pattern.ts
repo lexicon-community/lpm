@@ -2,7 +2,7 @@ import { inject, injectable } from "@needle-di/core";
 import { NSID } from "@atproto/syntax";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
-import { AtpBaseClient, AtUri, ComAtprotoLexiconNS } from "@atproto/api";
+import { AtpBaseClient, AtUri } from "@atproto/api";
 import { AtpFetchToken } from "./fetch.ts";
 import type { Node } from "./node.ts";
 
