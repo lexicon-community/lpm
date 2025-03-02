@@ -41,7 +41,7 @@ Deno.test("node children", async () => {
   );
 });
 
-Deno.test.only("registry resolve", async () => {
+Deno.test("registry resolve", async () => {
   const registry = bootstrap(NodeRegistry);
 
   const uris = [];
