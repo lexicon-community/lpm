@@ -5,7 +5,7 @@ Lexicon package manager for atproto schemas.
 ## Install
 
 ```
-deno install --global jsr:@lpm/cli --name lpm
+deno install --global --allow-all jsr:@lpm/cli --name lpm
 ```
 
 ## Usage
