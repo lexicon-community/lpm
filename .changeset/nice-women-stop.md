@@ -1,0 +1,5 @@
+---
+"@lpm/cli": minor
+---
+
+fdlkjdfkl
