@@ -6,9 +6,9 @@ import {
   type LexObject,
   type LexRefVariant,
 } from "@atproto/lexicon";
-import { AtpBaseClient } from "@atproto/api";
 import type { NodeRegistry } from "./node-registry.ts";
 import type { NSIDAuthorityService } from "./nsid-authority.ts";
+import { createAtprotoClient } from "./atproto-client.ts";
 
 export type Resolution =
   | {
@@ -47,9 +47,7 @@ export class Node {
       this.nsid.toString(),
     );
 
-    const client = new AtpBaseClient((input, init) =>
-      this.fetch(new URL(input, authority.pds), init)
-    );
+    const client = createAtprotoClient(authority.pds, this.fetch);
 
     const schemaRecordResponse = await client.com.atproto.repo.getRecord({
       repo: authority.did,

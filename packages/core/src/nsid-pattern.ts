@@ -2,9 +2,10 @@ import { inject, injectable } from "@needle-di/core";
 import { NSID } from "@atproto/syntax";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
-import { AtpBaseClient, AtUri } from "@atproto/api";
+import { AtUri } from "@atproto/api";
 import { AtpFetchToken } from "./fetch.ts";
 import type { Node } from "./node.ts";
+import { createAtprotoClient } from "./atproto-client.ts";
 
 export class NSIDPattern {
   base: NSID;
@@ -42,9 +43,7 @@ export class NSIDPatternResolver {
       throw new Error("No authority found for NSID");
     }
 
-    const client = new AtpBaseClient((input, init) =>
-      this.fetch(new URL(input, authority.pds), init)
-    );
+    const client = createAtprotoClient(authority.pds, this.fetch);
 
     const nodes = [];
 
