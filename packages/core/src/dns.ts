@@ -1,7 +1,14 @@
-import { InjectionToken } from "@needle-di/core";
+import { injectable } from "@needle-di/core";
 
-export const DnsResolverToken = new InjectionToken(Symbol("DnsResolver"), {
-  factory: () => Deno.resolveDns,
-});
-
-export type DnsResolver = typeof Deno.resolveDns;
+@injectable()
+export class DnsService {
+  async resolveTxt(domain: string): Promise<string[][]> {
+    try {
+      return await Deno.resolveDns(domain, "TXT");
+    } catch (error) {
+      throw new Error(`Failed to resolve TXT record for ${domain}.`, {
+        cause: error,
+      });
+    }
+  }
+}
