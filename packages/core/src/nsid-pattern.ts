@@ -3,7 +3,6 @@ import { NSID } from "@atproto/syntax";
 import { NodeRegistry } from "./node-registry.ts";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
 import { AtpBaseClient, AtUri } from "@atproto/api";
-import type { FetchHandler } from "@atproto/xrpc";
 import { AtpFetchToken } from "./fetch.ts";
 import type { Node } from "./node.ts";
 
@@ -29,7 +28,7 @@ export class NSIDPatternResolver {
       NSIDAuthorityService,
     ),
     private registry: NodeRegistry = inject(NodeRegistry),
-    private fetch: FetchHandler = inject(AtpFetchToken),
+    private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
   ) {}
 
   /**
@@ -44,7 +43,7 @@ export class NSIDPatternResolver {
     }
 
     const client = new AtpBaseClient((input, init) =>
-      this.fetch(new URL(input, authority.pds).toString(), init)
+      this.fetch(new URL(input, authority.pds), init)
     );
 
     const nodes = [];

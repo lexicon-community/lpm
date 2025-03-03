@@ -1,9 +1,7 @@
-import { injectable } from "@needle-di/core";
-import dns from "node:dns/promises";
+import { InjectionToken } from "@needle-di/core";
 
-@injectable()
-export class DnsService {
-  resolveTxt(domain: string): Promise<string[][]> {
-    return dns.resolveTxt(domain);
-  }
-}
+export const DnsResolverToken = new InjectionToken(Symbol("DnsResolver"), {
+  factory: () => Deno.resolveDns,
+});
+
+export type DnsResolver = typeof Deno.resolveDns;
