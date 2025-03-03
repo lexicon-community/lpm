@@ -5,7 +5,7 @@ import {
   DidNotFoundError,
   DidResolver,
 } from "@atproto/identity";
-import { type DnsResolver, DnsResolverToken } from "./dns.ts";
+import { DnsService } from "./dns.ts";
 import { NSIDPattern } from "./nsid-pattern.ts";
 
 const DidResolverToken = new InjectionToken(Symbol("DidResolver"), {
@@ -15,7 +15,7 @@ const DidResolverToken = new InjectionToken(Symbol("DidResolver"), {
 @injectable()
 export class NSIDAuthorityService {
   constructor(
-    private resolveDns: DnsResolver = inject(DnsResolverToken),
+    private dnsService: DnsService = inject(DnsService),
     private didResolver: DidResolver = inject(DidResolverToken),
   ) {}
 
@@ -29,9 +29,8 @@ export class NSIDAuthorityService {
       )
       : nsidOrPattern;
 
-    const record = await this.resolveDns(
+    const record = await this.dnsService.resolveTxt(
       `_lexicon.${nsid.authority}`,
-      "TXT",
     );
 
     const authorityDid = record.join("").replace(/^did=/, "");

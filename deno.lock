@@ -189,6 +189,7 @@
           "npm:@atproto/identity@~0.4.6",
           "npm:@atproto/lexicon@~0.4.7",
           "npm:@atproto/syntax@~0.3.3",
+          "npm:@atproto/xrpc@~0.6.9",
           "npm:@needle-di/core@~0.11.2"
         ]
       }

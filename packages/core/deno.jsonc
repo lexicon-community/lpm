@@ -1,6 +1,6 @@
 {
   "name": "@lpm/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "exports": "./mod.ts",
 
@@ -9,6 +9,7 @@
     "@atproto/api": "npm:@atproto/api@^0.14.6",
     "@atproto/identity": "npm:@atproto/identity@^0.4.6",
     "@atproto/lexicon": "npm:@atproto/lexicon@^0.4.7",
-    "@atproto/syntax": "npm:@atproto/syntax@^0.3.3"
+    "@atproto/syntax": "npm:@atproto/syntax@^0.3.3",
+    "@atproto/xrpc": "npm:@atproto/xrpc@^0.6.9"
   }
 }
