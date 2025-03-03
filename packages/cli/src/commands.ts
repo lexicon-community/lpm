@@ -144,10 +144,17 @@ export class AddCommand implements CommandDescriptor {
       )
       : [this.registry.get(nsidOrPattern)];
 
-    console.log("Adding new lexicons:");
+    console.log("Fetching lexicons:");
     console.log(nodesToAdd.map((node) => node.nsid.toString()).join("\n"));
 
-    manifest.lexicons.push(...nodesToAdd.map((node) => node.nsid.toString()));
+    manifest.lexicons = [
+      ...new Set([
+        ...manifest.lexicons,
+        ...nodesToAdd.map(
+          (node) => node.nsid.toString(),
+        ),
+      ]),
+    ];
     await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
 
     for await (const resolution of this.registry.resolve(nodesToAdd)) {
