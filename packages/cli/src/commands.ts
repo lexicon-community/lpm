@@ -188,9 +188,10 @@ export class ViewCommand implements CommandDescriptor {
 
     console.log(
       `\ndependencies:\n${
-        resolution.children.map((r) => `- ${fmt.bold(r.nsid.toString())}`).join(
-          "\n",
-        )
+        resolution.children.map((nsid) => `- ${fmt.bold(nsid.toString())}`)
+          .join(
+            "\n",
+          )
       }`,
     );
   }

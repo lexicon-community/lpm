@@ -1,8 +1,6 @@
 import { inject, injectable } from "@needle-di/core";
-import { Node, type Resolution } from "./node.ts";
+import { type Node, NodeFactory, type Resolution } from "./node.ts";
 import type { NSID } from "@atproto/syntax";
-import { NSIDAuthorityService } from "./nsid-authority.ts";
-import { AtpFetchToken } from "./fetch.ts";
 
 type NodeRegistryConfig = {
   maxSize: number;
@@ -14,8 +12,7 @@ export class NodeRegistry {
 
   constructor(
     public readonly config: NodeRegistryConfig = { maxSize: 150 },
-    private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
-    private nsidAuthority: NSIDAuthorityService = inject(NSIDAuthorityService),
+    private nodeFactory: NodeFactory = inject(NodeFactory),
   ) {}
 
   get(nsid: NSID): Node {
@@ -29,12 +26,7 @@ export class NodeRegistry {
       throw new NodeRegistrySizeExceededError("Maximum registry size reached");
     }
 
-    const node = new Node(
-      nsid,
-      this,
-      this.fetch,
-      this.nsidAuthority,
-    );
+    const node = this.nodeFactory.create(nsid);
     this.#cache.set(nsidStr, node);
     return node;
   }
@@ -61,16 +53,16 @@ export class NodeRegistry {
     while (queue.length > 0) {
       const currentBatch = queue.splice(0, queue.length);
       const resolutions = await Promise.all(
-        currentBatch.map((node) => node.resolve()),
+        currentBatch.map((nsid) => this.get(nsid).resolve()),
       );
 
       for (const resolution of resolutions) {
         if (resolution.success) {
           const children = resolution.children.filter(
-            (child) => !seenNodeNsids.has(child.nsid.toString()),
+            (nsid) => !seenNodeNsids.has(nsid.toString()),
           );
-          children.forEach((child) => {
-            seenNodeNsids.add(child.nsid.toString());
+          children.forEach((nsid) => {
+            seenNodeNsids.add(nsid.toString());
           });
 
           queue.push(...children);

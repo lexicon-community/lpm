@@ -36,7 +36,7 @@ Deno.test("node children", async () => {
 
   assertEquals(resolution.children.length, 1);
   assertEquals(
-    resolution.children[0].nsid.toString(),
+    resolution.children[0].toString(),
     "com.atproto.repo.strongRef",
   );
 });

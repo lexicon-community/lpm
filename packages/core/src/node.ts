@@ -6,16 +6,17 @@ import {
   type LexObject,
   type LexRefVariant,
 } from "@atproto/lexicon";
-import type { NodeRegistry } from "./node-registry.ts";
-import type { NSIDAuthorityService } from "./nsid-authority.ts";
+import { NSIDAuthorityService } from "./nsid-authority.ts";
 import { createAtprotoClient } from "./atproto-client.ts";
+import { inject, injectable } from "@needle-di/core";
+import { AtpFetchToken } from "./fetch.ts";
 
 export type Resolution =
   | {
     success: true;
     uri: AtUri;
     doc: LexiconDoc;
-    children: Node[];
+    children: NSID[];
     nsid: NSID;
     cid: string;
     unresolvedRefs: string[];
@@ -32,7 +33,6 @@ export class Node {
 
   constructor(
     public readonly nsid: NSID,
-    private registry: NodeRegistry,
     private fetch: typeof globalThis.fetch,
     private nsidAuthorityService: NSIDAuthorityService,
   ) {}
@@ -96,7 +96,7 @@ export class Node {
     return {
       success: true,
       uri: uri,
-      children: childNsids.map((nsid) => this.registry.get(nsid)),
+      children: childNsids,
       doc,
       nsid: this.nsid,
       cid: schemaRecordResponse.data.cid,
@@ -213,4 +213,18 @@ function getObjectRefs(obj: LexObject): LexRefVariant[] {
 
     return [];
   });
+}
+
+@injectable()
+export class NodeFactory {
+  constructor(
+    private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
+    private nsidAuthorityService: NSIDAuthorityService = inject(
+      NSIDAuthorityService,
+    ),
+  ) {}
+
+  create(nsid: NSID): Node {
+    return new Node(nsid, this.fetch, this.nsidAuthorityService);
+  }
 }
