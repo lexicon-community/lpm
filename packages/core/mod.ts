@@ -9,11 +9,8 @@ import type { Resolution } from "./src/node.ts";
 import dns from "node:dns/promises";
 import { DnsService } from "./src/dns.ts";
 
-export function resolveNSIDs(
-  nsids: string[],
-): AsyncIterable<Resolution> {
+export function getRegistry() {
   const container = new Container();
-
   container.bind(
     class NodeDnsService extends DnsService {
       override resolveTxt(domain: string): Promise<string[][]> {
@@ -21,8 +18,13 @@ export function resolveNSIDs(
       }
     },
   );
+  return container.get(NodeRegistry);
+}
 
-  const registry = container.get(NodeRegistry);
+export function resolveNSIDs(
+  nsids: string[],
+): AsyncIterable<Resolution> {
+  const registry = getRegistry();
   const nodes = nsids.map((nsid) => registry.get(NSID.parse(nsid)));
   const resolutions = registry.resolve(nodes);
   return resolutions;
