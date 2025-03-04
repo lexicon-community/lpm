@@ -9,7 +9,7 @@ import type { Resolution } from "./src/node.ts";
 import dns from "node:dns/promises";
 import { DnsService } from "./src/dns.ts";
 
-export function getRegistry() {
+export function getRegistry(): NodeRegistry {
   const container = new Container();
   container.bind(
     class NodeDnsService extends DnsService {
