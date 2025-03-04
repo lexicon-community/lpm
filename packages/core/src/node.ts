@@ -19,6 +19,7 @@ export type Resolution =
     nsid: NSID;
     cid: string;
     unresolvedRefs: string[];
+    pds: string;
   }
   | {
     success: false;
@@ -100,6 +101,7 @@ export class Node {
       nsid: this.nsid,
       cid: schemaRecordResponse.data.cid,
       unresolvedRefs,
+      pds: authority.pds,
     };
   }
 

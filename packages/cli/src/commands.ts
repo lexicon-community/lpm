@@ -7,7 +7,9 @@ import {
 } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
 import { emptyDir, ensureFile, exists } from "@std/fs";
-import { type ArgumentValue, Command } from "@cliffy/command";
+import { Command } from "@cliffy/command";
+import * as inputTypes from "./types.ts";
+import * as fmt from "@std/fmt/colors";
 
 @injectable()
 export class FileSystem {
@@ -53,22 +55,6 @@ export type CommandDescriptor = {
   command: Command<any>;
   name: string;
 };
-
-function nsidOrPatternType(
-  { label, name, value }: ArgumentValue,
-): NSID | NSIDPattern {
-  if (!NSID.isValid(value)) {
-    try {
-      return new NSIDPattern(value);
-    } catch (_) {
-      throw new Error(
-        `${label} "${name}" must be a valid NSID or NSIDPattern, but got "${value}"`,
-      );
-    }
-  }
-
-  return NSID.parse(value);
-}
 
 @injectable()
 export class FetchCommand implements CommandDescriptor {
@@ -123,9 +109,9 @@ export class AddCommand implements CommandDescriptor {
     )
     .example("Using NSID", "lpm add app.bsky.actor.profile")
     .example("Using NSID pattern", "lpm add 'app.bsky.actor.*'")
-    .type("nsid", nsidOrPatternType)
-    .arguments("<nsid:nsid>")
-    .action((_, nsid) => this.#action(nsid));
+    .type("nsidOrPattern", inputTypes.nsidOrPattern)
+    .arguments("<nsidOrPattern:nsidOrPattern>")
+    .action((_, nsidOrPattern) => this.#action(nsidOrPattern));
 
   async #action(nsidOrPattern: NSID | NSIDPattern) {
     const manifestDir = this.fs.cwd();
@@ -165,5 +151,47 @@ export class AddCommand implements CommandDescriptor {
 
       await this.resolutionsDir.writeResolution(resolution);
     }
+  }
+}
+
+@injectable()
+export class ViewCommand implements CommandDescriptor {
+  constructor(private registry = inject(NodeRegistry)) {}
+
+  name = "view";
+  command = new Command()
+    .description("View a lexicon.")
+    .type("nsid", inputTypes.nsid)
+    .arguments("<nsid:nsid>")
+    .action((_, nsid) => this.#action(nsid));
+
+  async #action(nsid: NSID) {
+    const node = this.registry.get(nsid);
+    const resolution = await node.resolve();
+    if (!resolution.success) {
+      console.error("failed to resolve ", resolution.errorCode);
+      return;
+    }
+
+    console.log(`\n${fmt.bold(nsid.toString())}\n`);
+    console.log(`uri: ${fmt.yellow(resolution.uri.toString())}`);
+    const url = new URL(
+      "/xrpc/com.atproto.repo.getRecord",
+      resolution.pds,
+    );
+    url.searchParams.set("repo", resolution.uri.host);
+    url.searchParams.set("collection", resolution.uri.collection);
+    url.searchParams.set("rkey", resolution.uri.rkey);
+    console.log(
+      `record url: ${fmt.yellow(url.toString())}`,
+    );
+
+    console.log(
+      `\ndependencies:\n${
+        resolution.children.map((r) => `- ${fmt.bold(r.nsid.toString())}`).join(
+          "\n",
+        )
+      }`,
+    );
   }
 }
