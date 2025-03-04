@@ -22,6 +22,7 @@ export type Resolution =
   }
   | {
     success: false;
+    nsid: NSID;
     errorCode: "NO_AUTHORITY" | "AUTHORITY_INVALID" | "RECORD_NOT_FOUND";
   };
 
@@ -38,7 +39,7 @@ export class Node {
   async #internalResolve(): Promise<Resolution> {
     const authority = await this.nsidAuthorityService.resolve(this.nsid);
     if (!authority) {
-      return { success: false, errorCode: "NO_AUTHORITY" };
+      return { success: false, errorCode: "NO_AUTHORITY", nsid: this.nsid };
     }
 
     const uri = AtUri.make(
