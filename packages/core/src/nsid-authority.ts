@@ -29,9 +29,14 @@ export class NSIDAuthorityService {
       )
       : nsidOrPattern;
 
-    const record = await this.dnsServicer.resolveTxt(
-      `_lexicon.${nsid.authority}`,
-    );
+    let record;
+    try {
+      record = await this.dnsServicer.resolveTxt(
+        `_lexicon.${nsid.authority}`,
+      );
+    } catch (_) {
+      return null;
+    }
 
     const authorityDid = record.join("").replace(/^did=/, "");
 
