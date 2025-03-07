@@ -34,10 +34,13 @@ Deno.test("node children", async () => {
   assertSuccessfullResolution(resolution);
   console.log(resolution.uri.toString());
 
-  assertEquals(resolution.children.length, 1);
+  assertEquals(resolution.children.length, 2);
   assertEquals(
-    resolution.children[0].toString(),
-    "com.atproto.repo.strongRef",
+    resolution.children.map((nsid) => nsid.toString()),
+    [
+      "com.atproto.label.defs",
+      "com.atproto.repo.strongRef",
+    ],
   );
 });
 
