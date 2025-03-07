@@ -66,9 +66,11 @@ export class Node {
       throw new Error("Expected cid to be defined");
     }
 
+    const refs = getRefs(doc);
+
     const externalRefs = [
       ...new Set(
-        getRefs(doc)
+        refs
           .filter(
             (ref) =>
               !ref.startsWith("#") &&

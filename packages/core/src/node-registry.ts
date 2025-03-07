@@ -60,13 +60,11 @@ export class NodeRegistry {
       for (const resolution of resolutions) {
         if (!seenNodeNsids.has(resolution.nsid.toString())) {
           yield resolution;
+          seenNodeNsids.add(resolution.nsid.toString());
           if (resolution.success) {
             const children = resolution.children.filter(
               (nsid) => !seenNodeNsids.has(nsid.toString()),
             );
-            children.forEach((nsid) => {
-              seenNodeNsids.add(nsid.toString());
-            });
 
             queue.push(...children);
           }
