@@ -211,6 +211,8 @@ function getObjectRefs(obj: LexObject): LexRefVariant[] {
 
     if (prop.type === "array") return getArrayRefs(prop);
 
+    if (prop.type === "union") return prop;
+
     return [];
   });
 }
