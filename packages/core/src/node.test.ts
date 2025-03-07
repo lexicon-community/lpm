@@ -48,7 +48,7 @@ Deno.test("registry resolve", async () => {
 
   for await (
     const resolution of registry.resolve([
-      registry.get(NSID.parse("app.bsky.graph.list")),
+      registry.get(NSID.parse("app.bsky.feed.post")),
     ])
   ) {
     assertSuccessfullResolution(resolution);

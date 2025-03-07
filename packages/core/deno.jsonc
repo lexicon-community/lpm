@@ -1,6 +1,6 @@
 {
   "name": "@lpm/core",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "license": "MIT",
   "exports": "./mod.ts",
 
