@@ -4,7 +4,7 @@ import { NodeRegistry } from "./node-registry.ts";
 import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
 import { bootstrap } from "@needle-di/core";
 import { Lexicons } from "@atproto/lexicon";
-import { AtpBaseClient } from "npm:@atproto/api";
+import { AtpBaseClient } from "@atproto/api";
 
 function assertSuccessfullResolution(
   data: Resolution,
