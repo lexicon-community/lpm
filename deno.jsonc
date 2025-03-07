@@ -1,3 +1,6 @@
 {
-  "workspace": ["./packages/cli", "./packages/core"]
+  "workspace": ["./packages/cli", "./packages/core"],
+  "tasks": {
+    "lpm": "deno run -A ./packages/cli/bin.ts"
+  }
 }
