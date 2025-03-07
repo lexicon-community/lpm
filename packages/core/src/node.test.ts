@@ -70,3 +70,23 @@ Deno.test("registry resolve", async () => {
   //   "at://did:plc:6msi3pj7krzih5qxqtryxlzw/com.atproto.lexicon.schema/com.atproto.repo.strongRef",
   // ]);
 });
+
+Deno.test("doesn't resolve the same uri twice", async () => {
+  const registry = bootstrap(NodeRegistry);
+  const uris: string[] = [];
+
+  for await (
+    const resolution of registry.resolve([
+      registry.get(NSID.parse("app.bsky.feed.post")),
+    ])
+  ) {
+    assertSuccessfullResolution(resolution);
+    uris.push(resolution.uri.toString());
+  }
+
+  const duplicateUris = uris.filter(
+    (uri) => uris.filter((u) => u === uri).length > 1,
+  );
+
+  assertEquals(new Set(duplicateUris), new Set());
+});

@@ -42,7 +42,8 @@ export class NodeRegistry {
     roots.forEach((root) => seenNodeNsids.add(root.nsid.toString()));
 
     if (rootResolutions.some((res) => !res.success)) {
-      // TODO: Return or throw errors
+      // TODO: Bubble up error
+      console.error("Error resolving root nodes");
       return;
     }
 
@@ -57,17 +58,19 @@ export class NodeRegistry {
       );
 
       for (const resolution of resolutions) {
-        if (resolution.success) {
-          const children = resolution.children.filter(
-            (nsid) => !seenNodeNsids.has(nsid.toString()),
-          );
-          children.forEach((nsid) => {
-            seenNodeNsids.add(nsid.toString());
-          });
+        if (!seenNodeNsids.has(resolution.nsid.toString())) {
+          yield resolution;
+          if (resolution.success) {
+            const children = resolution.children.filter(
+              (nsid) => !seenNodeNsids.has(nsid.toString()),
+            );
+            children.forEach((nsid) => {
+              seenNodeNsids.add(nsid.toString());
+            });
 
-          queue.push(...children);
+            queue.push(...children);
+          }
         }
-        yield resolution;
       }
     }
   }
