@@ -1,5 +1,7 @@
 import { inject, injectable } from "@needle-di/core";
 import {
+  type Node,
+  NodeFactory,
   NodeRegistry,
   NSIDPattern,
   NSIDPatternResolver,
@@ -62,6 +64,7 @@ export class FetchCommand implements CommandDescriptor {
     private fs = inject(FileSystem),
     private registry = inject(NodeRegistry),
     private resolutionsDir = inject(ResolutionsDir),
+    private nodeFactory = inject(NodeFactory),
   ) {}
 
   name = "fetch";
@@ -77,7 +80,7 @@ export class FetchCommand implements CommandDescriptor {
     }
     const manifestPath = manifestDir + "/lexicons.json";
     const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
-      (nsid: string) => NSID.parse(nsid),
+      (nsid: string) => this.nodeFactory.create(NSID.parse(nsid)),
     );
 
     await emptyDir(`${manifestDir}/lexicons`);
