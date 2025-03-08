@@ -11,6 +11,7 @@ import { emptyDir, ensureFile, exists } from "@std/fs";
 import { Command } from "@cliffy/command";
 import * as inputTypes from "./types.ts";
 import * as fmt from "@std/fmt/colors";
+import { z } from "zod";
 
 @injectable()
 export class FileSystem {
@@ -31,15 +32,47 @@ export class FileSystem {
   }
 }
 
+const Manifest = z.object({
+  lexicons: z.array(z.string()),
+});
+type Manifest = z.infer<typeof Manifest>;
+
 @injectable()
 class ResolutionsDir {
   constructor(private fs = inject(FileSystem)) {}
 
-  async writeResolution(resolution: Extract<Resolution, { success: true }>) {
+  getRoot() {
     const manifestDir = this.fs.cwd();
     if (!manifestDir) {
       throw new Error("Could not determine manifest directory");
     }
+
+    return manifestDir;
+  }
+
+  // TODO: Configure this
+  async getManifest() {
+    const manifestDir = this.getRoot();
+
+    const manifestPath = manifestDir + "/lexicons.json";
+
+    return (await this.fs.exists(manifestPath))
+      ? Manifest.parse(JSON.parse(await this.fs.readText(manifestPath)))
+      : { lexicons: [] };
+  }
+
+  async writeManifest(manifest: Manifest) {
+    const manifestDir = this.fs.cwd();
+    if (!manifestDir) {
+      throw new Error("Could not determine manifest directory");
+    }
+
+    const manifestPath = manifestDir + "/lexicons.json";
+    await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
+  }
+
+  async writeResolution(resolution: Extract<Resolution, { success: true }>) {
+    const manifestDir = this.getRoot();
 
     const path = `${manifestDir}/lexicons/${
       resolution.nsid.segments.join(
@@ -60,7 +93,6 @@ export type CommandDescriptor = {
 @injectable()
 export class FetchCommand implements CommandDescriptor {
   constructor(
-    private fs = inject(FileSystem),
     private registry = inject(NodeRegistry),
     private resolutionsDir = inject(ResolutionsDir),
     private nodeFactory = inject(NodeFactory),
@@ -72,19 +104,14 @@ export class FetchCommand implements CommandDescriptor {
     .action(() => this.#action());
 
   async #action() {
-    // TODO: Configure this
-    const manifestDir = this.fs.cwd();
-    if (!manifestDir) {
-      throw new Error("Could not determine manifest directory");
-    }
-    const manifestPath = manifestDir + "/lexicons.json";
-    const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
+    const manifest = await this.resolutionsDir.getManifest();
+    const roots = manifest.lexicons.map(
       (nsid: string) => this.nodeFactory.create(NSID.parse(nsid)),
     );
 
-    await emptyDir(`${manifestDir}/lexicons`);
+    await emptyDir(this.resolutionsDir.getRoot() + "/lexicons");
 
-    for await (const resolution of this.registry.resolve(nsids)) {
+    for await (const resolution of this.registry.resolve(roots)) {
       if (!resolution.success) {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
