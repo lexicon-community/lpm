@@ -7,7 +7,7 @@ import {
   type Resolution,
 } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
-import { emptyDir, ensureFile, exists } from "@std/fs";
+import { ensureFile, exists } from "@std/fs";
 import { Command } from "@cliffy/command";
 import * as inputTypes from "./types.ts";
 import * as fmt from "@std/fmt/colors";
@@ -108,8 +108,6 @@ export class FetchCommand implements CommandDescriptor {
     const roots = manifest.lexicons.map(
       (nsid: string) => this.nodeFactory.create(NSID.parse(nsid)),
     );
-
-    await emptyDir(this.resolutionsDir.getRoot() + "/lexicons");
 
     for await (const resolution of this.registry.resolve(roots)) {
       if (!resolution.success) {
