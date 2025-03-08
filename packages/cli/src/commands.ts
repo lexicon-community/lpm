@@ -1,6 +1,5 @@
 import { inject, injectable } from "@needle-di/core";
 import {
-  type Node,
   NodeFactory,
   NodeRegistry,
   NSIDPattern,
