@@ -2,6 +2,7 @@ import {
   AddCommand,
   type CommandDescriptor,
   FetchCommand,
+  TreeCommand,
   ViewCommand,
 } from "./src/commands.ts";
 import { Command } from "@cliffy/command";
@@ -15,7 +16,7 @@ const bin = new Command()
     console.log(bin.getHelp());
   });
 
-const commands = [FetchCommand, AddCommand, ViewCommand];
+const commands = [FetchCommand, AddCommand, ViewCommand, TreeCommand];
 const container = new Container();
 
 for (const cmd of commands) {

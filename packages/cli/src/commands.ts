@@ -196,3 +196,68 @@ export class ViewCommand implements CommandDescriptor {
     );
   }
 }
+
+@injectable()
+export class TreeCommand implements CommandDescriptor {
+  constructor(private registry = inject(NodeRegistry)) {}
+
+  name = "tree";
+
+  command = new Command()
+    .name("tree")
+    .description("View a lexicon tree.")
+    .type("nsid", inputTypes.nsid)
+    .option("-d --depth <depth:number>", "The depth of the tree.", {
+      default: Infinity,
+    })
+    .arguments("<nsid:nsid>")
+    .action(({ depth }, nsid) => this.#action(nsid, depth));
+
+  async #action(nsid: NSID, maxDepth: number) {
+    const root = await this.registry.get(nsid).resolve();
+    if (!root.success) {
+      console.error("failed to resolve ", root.errorCode);
+      return;
+    }
+
+    const getIndent = (ancestors: string[], isLast: boolean): string => {
+      let indent = "";
+      for (let i = 0; i < ancestors.length; i++) {
+        indent += i === ancestors.length - 1
+          ? `${isLast ? "└" : "├"}─── `
+          : "│   ";
+      }
+      return indent;
+    };
+
+    const printNode = async (
+      node: Resolution,
+      ancestors: string[],
+      isLast = false,
+    ) => {
+      if (!node.success) {
+        throw new Error("failed to resolve");
+      }
+      const nodeId = node.nsid.toString();
+      const indent = getIndent(ancestors, isLast);
+      if (ancestors.includes(nodeId)) {
+        console.log(`${indent}${nodeId} ${fmt.yellow("●")}`);
+        return;
+      }
+      console.log(
+        `${indent}${node.children.length === 0 ? nodeId : fmt.bold(nodeId)}`,
+      );
+      if (ancestors.length + 1 > maxDepth) {
+        return;
+      }
+
+      for (const [i, child] of node.children.entries()) {
+        const childResolution = await this.registry.get(child).resolve();
+        const isLast = i === node.children.length - 1;
+        await printNode(childResolution, [...ancestors, nodeId], isLast);
+      }
+    };
+
+    await printNode(root, []);
+  }
+}
