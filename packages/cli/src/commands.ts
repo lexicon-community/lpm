@@ -75,7 +75,7 @@ export class FetchCommand implements CommandDescriptor {
     if (!manifestDir) {
       throw new Error("Could not determine manifest directory");
     }
-    const manifestPath = manifestDir + "/manifest.json";
+    const manifestPath = manifestDir + "/lexicons.json";
     const nsids = JSON.parse(await this.fs.readText(manifestPath)).lexicons.map(
       (nsid: string) => NSID.parse(nsid),
     );
@@ -118,7 +118,7 @@ export class AddCommand implements CommandDescriptor {
     if (!manifestDir) {
       throw new Error("Could not determine manifest directory");
     }
-    const manifestPath = manifestDir + "/manifest.json";
+    const manifestPath = manifestDir + "/lexicons.json";
 
     const manifest = (await this.fs.exists(manifestPath))
       ? JSON.parse(await this.fs.readText(manifestPath))
