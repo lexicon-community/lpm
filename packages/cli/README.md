@@ -12,7 +12,6 @@ deno install --global --allow-all jsr:@lpm/cli --name lpm
 
 ### `add <nsid | pattern>`
 
-
 ```
 lpm add app.bsky.feed.post
 lpm add app.bsky.actor.*
@@ -36,7 +35,8 @@ Fetches all lexicons defied in `lexicons.json` and their dependencies.
 lpm view app.bsky.feed.post
 ```
 
-View metadata about a lexicon such as it's direct dependencies and the authority DID.
+View metadata about a lexicon such as it's direct dependencies and the authority
+DID.
 
 ### `tree --depth=<number> <nsid>`
 
@@ -45,8 +45,5 @@ lpm tree app.bsky.feed.post
 lpm tree app.bsky.graph.defs --depth 3
 ```
 
-Resolves the tree of lexicons starting at a specific NSID. Denotes circular dependencies with a yellow circle.
-
-
-
-
+Resolves the tree of lexicons starting at a specific NSID. Denotes circular
+dependencies with a yellow circle.
