@@ -1,6 +1,6 @@
 import { inject, injectable } from "@needle-di/core";
 import { NSID } from "@atproto/syntax";
-import { NodeRegistry } from "./node-registry.ts";
+import { Catalog } from "./catalog.ts";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
 import { AtUri } from "@atproto/api";
 import { AtpFetchToken } from "./fetch.ts";
@@ -28,7 +28,7 @@ export class NSIDPatternResolver {
     private nsidAuthorityService: NSIDAuthorityService = inject(
       NSIDAuthorityService,
     ),
-    private registry: NodeRegistry = inject(NodeRegistry),
+    private catalog: Catalog = inject(Catalog),
     private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
   ) {}
 
@@ -60,7 +60,7 @@ export class NSIDPatternResolver {
       for (const record of page.records) {
         const uri = new AtUri(record.uri);
         if (uri.rkey.startsWith(pattern.base.toString())) {
-          schemas.push(this.registry.get(NSID.parse(uri.rkey)));
+          schemas.push(this.catalog.get(NSID.parse(uri.rkey)));
         }
       }
     }

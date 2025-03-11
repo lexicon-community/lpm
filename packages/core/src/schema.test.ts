@@ -1,6 +1,6 @@
 import { AtUri, NSID } from "@atproto/syntax";
 import type { Resolution } from "./schema.ts";
-import { NodeRegistry } from "./node-registry.ts";
+import { Catalog } from "./catalog.ts";
 import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
 import { bootstrap } from "@needle-di/core";
 import { Lexicons } from "@atproto/lexicon";
@@ -14,9 +14,9 @@ function assertSuccessfullResolution(
 }
 
 Deno.test("resolves uri", async () => {
-  const registry = bootstrap(NodeRegistry);
+  const catalog = bootstrap(Catalog);
 
-  const resolution = await registry
+  const resolution = await catalog
     .get(NSID.parse("com.atproto.lexicon.schema"))
     .resolve();
 
@@ -28,9 +28,9 @@ Deno.test("resolves uri", async () => {
 });
 
 Deno.test("node children", async () => {
-  const registry = bootstrap(NodeRegistry);
+  const catalog = bootstrap(Catalog);
 
-  const resolution = await registry
+  const resolution = await catalog
     .get(NSID.parse("app.bsky.actor.profile"))
     .resolve();
   assertSuccessfullResolution(resolution);
@@ -46,14 +46,14 @@ Deno.test("node children", async () => {
   );
 });
 
-Deno.test("registry resolve", async () => {
-  const registry = bootstrap(NodeRegistry);
+Deno.test("catalog resolve", async () => {
+  const catalog = bootstrap(Catalog);
 
   const uris = [];
 
   for await (
-    const resolution of registry.resolve([
-      registry.get(NSID.parse("app.bsky.feed.post")),
+    const resolution of catalog.resolve([
+      catalog.get(NSID.parse("app.bsky.feed.post")),
     ])
   ) {
     assertSuccessfullResolution(resolution);
@@ -74,12 +74,12 @@ Deno.test("registry resolve", async () => {
 });
 
 Deno.test("doesn't resolve the same uri twice", async () => {
-  const registry = bootstrap(NodeRegistry);
+  const catalog = bootstrap(Catalog);
   const uris: string[] = [];
 
   for await (
-    const resolution of registry.resolve([
-      registry.get(NSID.parse("app.bsky.feed.post")),
+    const resolution of catalog.resolve([
+      catalog.get(NSID.parse("app.bsky.feed.post")),
     ])
   ) {
     assertSuccessfullResolution(resolution);
@@ -95,11 +95,11 @@ Deno.test("doesn't resolve the same uri twice", async () => {
 
 Deno.test("can validate a post record", async () => {
   const NSID_STR = "app.bsky.feed.post";
-  const registry = bootstrap(NodeRegistry);
+  const catalog = bootstrap(Catalog);
   const resolutions = [];
   for await (
-    const resolution of registry.resolve([
-      registry.get(NSID.parse(NSID_STR)),
+    const resolution of catalog.resolve([
+      catalog.get(NSID.parse(NSID_STR)),
     ])
   ) {
     assertSuccessfullResolution(resolution);

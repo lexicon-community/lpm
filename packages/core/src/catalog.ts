@@ -2,16 +2,16 @@ import { inject, injectable } from "@needle-di/core";
 import { type Resolution, type Schema, SchemaFactory } from "./schema.ts";
 import type { NSID } from "@atproto/syntax";
 
-type NodeRegistryConfig = {
+type CatalogConfig = {
   maxSize: number;
 };
 
 @injectable()
-export class NodeRegistry {
+export class Catalog {
   #cache = new Map<string, Schema>();
 
   constructor(
-    public readonly config: NodeRegistryConfig = { maxSize: 150 },
+    public readonly config: CatalogConfig = { maxSize: 150 },
     private schemaFactory: SchemaFactory = inject(SchemaFactory),
   ) {}
 
@@ -23,7 +23,7 @@ export class NodeRegistry {
     }
 
     if (this.#cache.size >= this.config.maxSize) {
-      throw new NodeRegistrySizeExceededError("Maximum registry size reached");
+      throw new CatalogSizeExceededError("Maximum catalog size reached");
     }
 
     const schema = this.schemaFactory.create(nsid);
@@ -82,4 +82,4 @@ export class NodeRegistry {
   }
 }
 
-class NodeRegistrySizeExceededError extends Error {}
+class CatalogSizeExceededError extends Error {}

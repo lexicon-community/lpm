@@ -1,6 +1,6 @@
 import { inject, injectable } from "@needle-di/core";
 import {
-  NodeRegistry,
+  Catalog,
   NSIDPattern,
   NSIDPatternResolver,
   type Resolution,
@@ -93,7 +93,7 @@ export type CommandDescriptor = {
 @injectable()
 export class FetchCommand implements CommandDescriptor {
   constructor(
-    private registry = inject(NodeRegistry),
+    private catalog = inject(Catalog),
     private resolutionsDir = inject(ResolutionsDir),
     private schemaFactory = inject(SchemaFactory),
   ) {}
@@ -109,7 +109,7 @@ export class FetchCommand implements CommandDescriptor {
       (nsid: string) => this.schemaFactory.create(NSID.parse(nsid)),
     );
 
-    for await (const resolution of this.registry.resolve(roots)) {
+    for await (const resolution of this.catalog.resolve(roots)) {
       if (!resolution.success) {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
@@ -124,7 +124,7 @@ export class FetchCommand implements CommandDescriptor {
 export class AddCommand implements CommandDescriptor {
   constructor(
     private fs = inject(FileSystem),
-    private registry = inject(NodeRegistry),
+    private catalog = inject(Catalog),
     private resolutionsDir = inject(ResolutionsDir),
     private nsidPatternResolver = inject(NSIDPatternResolver),
   ) {}
@@ -155,7 +155,7 @@ export class AddCommand implements CommandDescriptor {
       ? await this.nsidPatternResolver.resolvePattern(
         nsidOrPattern,
       )
-      : [this.registry.get(nsidOrPattern)];
+      : [this.catalog.get(nsidOrPattern)];
 
     console.log("Fetching lexicons:");
     console.log(
@@ -172,7 +172,7 @@ export class AddCommand implements CommandDescriptor {
     ];
     await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
 
-    for await (const resolution of this.registry.resolve(schemasToAdd)) {
+    for await (const resolution of this.catalog.resolve(schemasToAdd)) {
       if (!resolution.success) {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
@@ -185,7 +185,7 @@ export class AddCommand implements CommandDescriptor {
 
 @injectable()
 export class ViewCommand implements CommandDescriptor {
-  constructor(private registry = inject(NodeRegistry)) {}
+  constructor(private catalog = inject(Catalog)) {}
 
   name = "view";
   command = new Command()
@@ -195,7 +195,7 @@ export class ViewCommand implements CommandDescriptor {
     .action((_, nsid) => this.#action(nsid));
 
   async #action(nsid: NSID) {
-    const schema = this.registry.get(nsid);
+    const schema = this.catalog.get(nsid);
     const resolution = await schema.resolve();
     if (!resolution.success) {
       console.error("failed to resolve ", resolution.errorCode);
@@ -228,7 +228,7 @@ export class ViewCommand implements CommandDescriptor {
 
 @injectable()
 export class TreeCommand implements CommandDescriptor {
-  constructor(private registry = inject(NodeRegistry)) {}
+  constructor(private catalog = inject(Catalog)) {}
 
   name = "tree";
 
@@ -243,7 +243,7 @@ export class TreeCommand implements CommandDescriptor {
     .action(({ depth }, nsid) => this.#action(nsid, depth));
 
   async #action(nsid: NSID, maxDepth: number) {
-    const root = await this.registry.get(nsid).resolve();
+    const root = await this.catalog.get(nsid).resolve();
     if (!root.success) {
       console.error("failed to resolve ", root.errorCode);
       return;
@@ -283,7 +283,7 @@ export class TreeCommand implements CommandDescriptor {
       }
 
       for (const [i, child] of resolution.children.entries()) {
-        const childResolution = await this.registry.get(child).resolve();
+        const childResolution = await this.catalog.get(child).resolve();
         const isLast = i === resolution.children.length - 1;
         await printResolution(
           childResolution,
