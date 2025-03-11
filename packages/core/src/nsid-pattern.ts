@@ -4,7 +4,7 @@ import { NodeRegistry } from "./node-registry.ts";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
 import { AtUri } from "@atproto/api";
 import { AtpFetchToken } from "./fetch.ts";
-import type { Node } from "./node.ts";
+import type { Schema } from "./schema.ts";
 import { createAtprotoClient } from "./atproto-client.ts";
 
 export class NSIDPattern {
@@ -33,11 +33,11 @@ export class NSIDPatternResolver {
   ) {}
 
   /**
-   * Resolve a pattern to a list of Nodes.
+   * Resolve a pattern to a list of Schemas.
    *
    * @param pattern The pattern string can be a single NSID or an NSID with a wildcard in the last segment ONLY.
    */
-  async resolvePattern(pattern: NSIDPattern): Promise<Node[]> {
+  async resolvePattern(pattern: NSIDPattern): Promise<Schema[]> {
     const authority = await this.nsidAuthorityService.resolve(pattern);
     if (!authority) {
       throw new Error("No authority found for NSID");
@@ -45,7 +45,7 @@ export class NSIDPatternResolver {
 
     const client = createAtprotoClient(authority.pds, this.fetch);
 
-    const nodes = [];
+    const schemas = [];
 
     for await (
       const page of paginate((cursor) =>
@@ -60,12 +60,12 @@ export class NSIDPatternResolver {
       for (const record of page.records) {
         const uri = new AtUri(record.uri);
         if (uri.rkey.startsWith(pattern.base.toString())) {
-          nodes.push(this.registry.get(NSID.parse(uri.rkey)));
+          schemas.push(this.registry.get(NSID.parse(uri.rkey)));
         }
       }
     }
 
-    return nodes;
+    return schemas;
   }
 }
 

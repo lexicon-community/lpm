@@ -28,7 +28,7 @@ export type Resolution =
     errorCode: "NO_AUTHORITY" | "AUTHORITY_INVALID" | "RECORD_NOT_FOUND";
   };
 
-export class Node {
+export class Schema {
   #data: null | Promise<Resolution> = null;
 
   constructor(
@@ -220,7 +220,7 @@ function getObjectRefs(obj: LexObject): LexRefVariant[] {
 }
 
 @injectable()
-export class NodeFactory {
+export class SchemaFactory {
   constructor(
     private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
     private nsidAuthorityService: NSIDAuthorityService = inject(
@@ -228,7 +228,7 @@ export class NodeFactory {
     ),
   ) {}
 
-  create(nsid: NSID): Node {
-    return new Node(nsid, this.fetch, this.nsidAuthorityService);
+  create(nsid: NSID): Schema {
+    return new Schema(nsid, this.fetch, this.nsidAuthorityService);
   }
 }

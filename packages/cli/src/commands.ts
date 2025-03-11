@@ -1,10 +1,10 @@
 import { inject, injectable } from "@needle-di/core";
 import {
-  NodeFactory,
   NodeRegistry,
   NSIDPattern,
   NSIDPatternResolver,
   type Resolution,
+  SchemaFactory,
 } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
 import { ensureFile, exists } from "@std/fs";
@@ -95,7 +95,7 @@ export class FetchCommand implements CommandDescriptor {
   constructor(
     private registry = inject(NodeRegistry),
     private resolutionsDir = inject(ResolutionsDir),
-    private nodeFactory = inject(NodeFactory),
+    private schemaFactory = inject(SchemaFactory),
   ) {}
 
   name = "fetch";
@@ -106,7 +106,7 @@ export class FetchCommand implements CommandDescriptor {
   async #action() {
     const manifest = await this.resolutionsDir.getManifest();
     const roots = manifest.lexicons.map(
-      (nsid: string) => this.nodeFactory.create(NSID.parse(nsid)),
+      (nsid: string) => this.schemaFactory.create(NSID.parse(nsid)),
     );
 
     for await (const resolution of this.registry.resolve(roots)) {
@@ -151,26 +151,28 @@ export class AddCommand implements CommandDescriptor {
       ? JSON.parse(await this.fs.readText(manifestPath))
       : { lexicons: [] };
 
-    const nodesToAdd = nsidOrPattern instanceof NSIDPattern
+    const schemasToAdd = nsidOrPattern instanceof NSIDPattern
       ? await this.nsidPatternResolver.resolvePattern(
         nsidOrPattern,
       )
       : [this.registry.get(nsidOrPattern)];
 
     console.log("Fetching lexicons:");
-    console.log(nodesToAdd.map((node) => node.nsid.toString()).join("\n"));
+    console.log(
+      schemasToAdd.map((schema) => schema.nsid.toString()).join("\n"),
+    );
 
     manifest.lexicons = [
       ...new Set([
         ...manifest.lexicons,
-        ...nodesToAdd.map(
-          (node) => node.nsid.toString(),
+        ...schemasToAdd.map(
+          (schema) => schema.nsid.toString(),
         ),
       ]),
     ];
     await this.fs.writeText(manifestPath, JSON.stringify(manifest, null, 2));
 
-    for await (const resolution of this.registry.resolve(nodesToAdd)) {
+    for await (const resolution of this.registry.resolve(schemasToAdd)) {
       if (!resolution.success) {
         console.error("failed to resolve ", resolution.errorCode);
         continue;
@@ -193,8 +195,8 @@ export class ViewCommand implements CommandDescriptor {
     .action((_, nsid) => this.#action(nsid));
 
   async #action(nsid: NSID) {
-    const node = this.registry.get(nsid);
-    const resolution = await node.resolve();
+    const schema = this.registry.get(nsid);
+    const resolution = await schema.resolve();
     if (!resolution.success) {
       console.error("failed to resolve ", resolution.errorCode);
       return;
@@ -257,34 +259,40 @@ export class TreeCommand implements CommandDescriptor {
       return indent;
     };
 
-    const printNode = async (
-      node: Resolution,
+    const printResolution = async (
+      resolution: Resolution,
       ancestors: string[],
       isLast = false,
     ) => {
-      if (!node.success) {
+      if (!resolution.success) {
         throw new Error("failed to resolve");
       }
-      const nodeId = node.nsid.toString();
+      const schemaId = resolution.nsid.toString();
       const indent = getIndent(ancestors, isLast);
-      if (ancestors.includes(nodeId)) {
-        console.log(`${indent}${nodeId} ${fmt.yellow("●")}`);
+      if (ancestors.includes(schemaId)) {
+        console.log(`${indent}${schemaId} ${fmt.yellow("●")}`);
         return;
       }
       console.log(
-        `${indent}${node.children.length === 0 ? nodeId : fmt.bold(nodeId)}`,
+        `${indent}${
+          resolution.children.length === 0 ? schemaId : fmt.bold(schemaId)
+        }`,
       );
       if (ancestors.length + 1 > maxDepth) {
         return;
       }
 
-      for (const [i, child] of node.children.entries()) {
+      for (const [i, child] of resolution.children.entries()) {
         const childResolution = await this.registry.get(child).resolve();
-        const isLast = i === node.children.length - 1;
-        await printNode(childResolution, [...ancestors, nodeId], isLast);
+        const isLast = i === resolution.children.length - 1;
+        await printResolution(
+          childResolution,
+          [...ancestors, schemaId],
+          isLast,
+        );
       }
     };
 
-    await printNode(root, []);
+    await printResolution(root, []);
   }
 }

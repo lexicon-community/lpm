@@ -1,5 +1,5 @@
 import { AtUri, NSID } from "@atproto/syntax";
-import type { Resolution } from "./node.ts";
+import type { Resolution } from "./schema.ts";
 import { NodeRegistry } from "./node-registry.ts";
 import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
 import { bootstrap } from "@needle-di/core";
