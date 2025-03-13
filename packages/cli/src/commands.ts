@@ -296,3 +296,38 @@ export class TreeCommand implements CommandDescriptor {
     await printResolution(root, []);
   }
 }
+
+@injectable()
+export class CheckCommand implements CommandDescriptor {
+  constructor(private catalog = inject(Catalog)) {}
+
+  name = "check";
+  command = new Command()
+    .description("Check lexicons for issues.")
+    .type("nsid", inputTypes.nsid)
+    .arguments("<nsids...:nsid>")
+    .action((_, ...nsids) => this.#action(nsids));
+
+  async #action(nsids: [NSID, ...NSID[]]) {
+    const resolutionResults = await Promise.allSettled(
+      nsids.map(async (nsid) => {
+        const resolution = await this.catalog.get(nsid).resolve();
+
+        if (!resolution.success) {
+          throw new CheckError(resolution.nsid, resolution.errorCode);
+        }
+
+        // - All direct children must resolve
+        // - All references must point to a valid def inside those children
+      }),
+    );
+  }
+}
+
+class CheckError extends Error {
+  nsid: NSID;
+  constructor(nsid: NSID, message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.nsid = nsid;
+  }
+}

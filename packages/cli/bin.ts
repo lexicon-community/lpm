@@ -1,5 +1,6 @@
 import {
   AddCommand,
+  CheckCommand,
   type CommandDescriptor,
   FetchCommand,
   TreeCommand,
@@ -16,7 +17,13 @@ const bin = new Command()
     console.log(bin.getHelp());
   });
 
-const commands = [FetchCommand, AddCommand, ViewCommand, TreeCommand];
+const commands = [
+  FetchCommand,
+  AddCommand,
+  ViewCommand,
+  TreeCommand,
+  CheckCommand,
+];
 const container = new Container();
 
 for (const cmd of commands) {
