@@ -76,7 +76,7 @@ export class Schema {
               !ref.startsWith("#") &&
               ref.split("#")[0] !== this.nsid.toString(),
           )
-          .map((ref) => ref.split("#")[0]),
+          .map((ref) => ref.split("#")[0]!),
       ),
     ];
 
