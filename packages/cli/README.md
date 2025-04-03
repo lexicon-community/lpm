@@ -8,6 +8,12 @@ Lexicon package manager for atproto schemas.
 deno install --global --allow-all jsr:@lpm/cli --name lpm
 ```
 
+You can also run the CLI directly with `deno run` without installing it globally:
+
+```
+deno run jsr:@lpm/cli --version
+```
+
 ## Usage
 
 ### `add <nsid | pattern>`
