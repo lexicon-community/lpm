@@ -10,7 +10,11 @@ function assertSuccessfullResolution(
   data: Resolution,
   msg?: string,
 ): asserts data is Resolution & { success: true } {
-  assertObjectMatch(data, { success: true }, msg);
+  assertObjectMatch(
+    data,
+    { success: true },
+    `${msg ?? ""} - got - ${JSON.stringify(data)}`,
+  );
 }
 
 Deno.test("resolves uri", async () => {
