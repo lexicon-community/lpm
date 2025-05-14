@@ -25,4 +25,4 @@ for (const cmd of commands) {
   bin.command(instance.name, instance.command);
 }
 
-await bin.parse(Deno.args);
+await bin.parse();
