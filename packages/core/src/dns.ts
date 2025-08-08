@@ -7,7 +7,6 @@ export class DnsService {
     try {
       return await resolveTxt(domain);
     } catch (error) {
-      console.error(domain, error);
       throw new Error(`Failed to resolve TXT record for ${domain}.`, {
         cause: error,
       });
