@@ -7,28 +7,48 @@ import {
   SchemaFactory,
 } from "@lpm/core";
 import { NSID } from "@atproto/syntax";
-import { ensureFile, exists } from "@std/fs";
 import { Command } from "@cliffy/command";
 import * as inputTypes from "./types.ts";
 import * as fmt from "@std/fmt/colors";
 import { z } from "zod";
+import * as fs from "node:fs/promises";
+import process from "node:process";
 
 @injectable()
 export class FileSystem {
-  writeText(path: string, data: string | ReadableStream<string>) {
-    return Deno.writeTextFile(path, data);
+  writeText(
+    path: string,
+    data: string | ReadableStream<string>,
+  ): Promise<void> {
+    return fs.writeFile(path, data);
   }
 
-  readText(path: string) {
-    return Deno.readTextFile(path);
+  readText(path: string): Promise<string> {
+    return fs.readFile(path, "utf-8");
   }
 
-  exists(path: string) {
-    return exists(path);
+  async exists(path: string): Promise<boolean> {
+    try {
+      await fs.access(path);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   cwd() {
-    return Deno.cwd();
+    return process.cwd();
+  }
+
+  /**
+   * If the file exists, do nothing. If it doesn't exist, create the parent directories
+   */
+  async ensureFile(path: string) {
+    if (await this.exists(path)) {
+      return;
+    }
+    const dir = path.substring(0, path.lastIndexOf("/"));
+    await fs.mkdir(dir, { recursive: true });
   }
 }
 
@@ -79,7 +99,7 @@ class ResolutionsDir {
         "/",
       )
     }.json`;
-    await ensureFile(path);
+    await this.fs.ensureFile(path);
     await this.fs.writeText(path, JSON.stringify(resolution.doc, null, 2));
   }
 }
