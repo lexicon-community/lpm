@@ -15,7 +15,7 @@ globally:
 deno run jsr:@lpm/cli --version
 ```
 
-For experimental Node.js support, see further below.
+For **experimental Node.js support**, see further below.
 
 ## Usage
 
