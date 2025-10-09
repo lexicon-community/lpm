@@ -4,8 +4,6 @@ Lexicon package manager for atproto schemas.
 
 ## Install
 
-### Deno
-
 ```
 deno install --global --allow-all jsr:@lpm/cli --name lpm
 ```
@@ -17,22 +15,7 @@ globally:
 deno run jsr:@lpm/cli --version
 ```
 
-### Node
-
-```
-npx jsr add @lpm/cli
-```
-
-Then add this to your `scripts`:
-
-```
-  "scripts": {
-    // ...
-    "lpm": "node node_modules/@lpm/cli/bin.js"
-  }
-```
-
-Then you can call it like `npm run lpm --version`.
+For experimental Node.js support, see further below.
 
 ## Usage
 
