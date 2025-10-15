@@ -1,15 +1,8 @@
-import { injectable } from "@needle-di/core";
+import { Effect } from "effect";
 import { resolveTxt } from "node:dns/promises";
 
-@injectable()
-export class DnsService {
-  async resolveTxt(domain: string): Promise<string[][]> {
-    try {
-      return await resolveTxt(domain);
-    } catch (error) {
-      throw new Error(`Failed to resolve TXT record for ${domain}.`, {
-        cause: error,
-      });
-    }
-  }
-}
+export class DnsService extends Effect.Service<DnsService>()("core/DnsService", {
+  sync: () => ({
+    resolveTxt: (domain: string) => Effect.tryPromise(() => resolveTxt(domain)),
+  }),
+}) {}

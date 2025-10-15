@@ -1,85 +1,66 @@
-import { inject, injectable } from "@needle-di/core";
-import { type Resolution, type Schema, SchemaFactory } from "./schema.ts";
-import type { NSID } from "@atproto/syntax";
+import { Effect, Cache, Duration, Queue, Stream } from "effect";
+import { type Resolution, SchemaService } from "./schema.ts";
+import { NSID } from "./nsid.ts";
 
-type CatalogConfig = {
-  maxSize: number;
-};
+const catalogImpl = Effect.gen(function* () {
+  const resolveCache = yield* Cache.make({
+    capacity: 100,
+    timeToLive: Duration.infinity,
+    lookup: yield* SchemaService,
+  });
 
-@injectable()
-export class Catalog {
-  #cache = new Map<string, Schema>();
+  // const resolve2 = (roots: NSID[]) =>
 
-  constructor(
-    public readonly config: CatalogConfig = { maxSize: 150 },
-    private schemaFactory: SchemaFactory = inject(SchemaFactory),
-  ) {}
+  const resolve = (roots: NSID[]) =>
+    Effect.gen(function* () {
+      const queue = yield* Queue.bounded<Resolution>(100);
 
-  get(nsid: NSID): Schema {
-    const nsidStr = nsid.toString();
-    const existingSchema = this.#cache.get(nsidStr);
-    if (existingSchema) {
-      return existingSchema;
-    }
+      const producer = Effect.gen(function* () {
+        const rootResolutions = yield* Effect.all(
+          roots.map((root) => resolveCache.get(root)),
+          { concurrency: "unbounded" },
+        );
 
-    if (this.#cache.size >= this.config.maxSize) {
-      throw new CatalogSizeExceededError("Maximum catalog size reached");
-    }
+        yield* queue.offerAll(rootResolutions);
 
-    const schema = this.schemaFactory.create(nsid);
-    this.#cache.set(nsidStr, schema);
-    return schema;
-  }
+        const seenSchemaNsids = new Set<string>();
+        const workQueue = rootResolutions.flatMap((res) => res.children);
 
-  async *resolve(roots: Schema[]): AsyncIterable<Resolution> {
-    const seenSchemaNsids = new Set<string>();
+        while (workQueue.length > 0) {
+          const currentBatch = workQueue.splice(0, workQueue.length);
+          // Drop failures, we don't want to walk those
+          const resolutions = yield* Effect.allSuccesses(
+            currentBatch.map((nsid) => resolveCache.get(nsid)),
+            { concurrency: "unbounded" },
+          );
 
-    const rootResolutions = await Promise.all(
-      roots.map((root) => root.resolve()),
-    );
-
-    yield* rootResolutions;
-    roots.forEach((root) => seenSchemaNsids.add(root.nsid.toString()));
-
-    if (rootResolutions.some((res) => !res.success)) {
-      // TODO: Bubble up error
-      console.error("Error resolving root schemas");
-      return;
-    }
-
-    const queue = rootResolutions.flatMap((res) =>
-      res.success ? res.children : []
-    );
-
-    while (queue.length > 0) {
-      const currentBatch = queue.splice(0, queue.length);
-      const resolutions = await Promise.all(
-        currentBatch.map((nsid) => this.get(nsid).resolve()),
-      );
-
-      for (const resolution of resolutions) {
-        if (!seenSchemaNsids.has(resolution.nsid.toString())) {
-          yield resolution;
-          seenSchemaNsids.add(resolution.nsid.toString());
-          if (resolution.success) {
-            const children = resolution.children.filter(
-              (nsid) => !seenSchemaNsids.has(nsid.toString()),
-            );
-
-            queue.push(...children);
+          for (const resolution of resolutions) {
+            if (seenSchemaNsids.has(resolution.nsid.toString())) continue;
+            yield* queue.offer(resolution);
+            seenSchemaNsids.add(resolution.nsid.toString());
+            const children = resolution.children.filter((nsid) => !seenSchemaNsids.has(nsid.toString()));
+            workQueue.push(...children);
           }
         }
-      }
-    }
-  }
+      });
 
-  invalidate(nsid: NSID) {
-    this.#cache.delete(nsid.toString());
-  }
+      return Stream.merge(
+        Stream.fromQueue(queue),
+        // Merging with producer ensures that any errors are emitted on the stream
+        // There is perhaps a better way to do this
+        Stream.fromEffect(producer).pipe(Stream.drain),
+        {
+          haltStrategy: "either",
+        },
+      );
+    });
 
-  get size(): number {
-    return this.#cache.size;
-  }
-}
+  return {
+    resolve,
+    invalidate: (nsid: NSID) => resolveCache.invalidate(nsid),
+  };
+});
 
-class CatalogSizeExceededError extends Error {}
+export class Catalog extends Effect.Service<Catalog>()("core/Catalog", {
+  effect: catalogImpl,
+}) {}

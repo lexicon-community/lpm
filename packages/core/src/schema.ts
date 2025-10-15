@@ -1,120 +1,111 @@
-import { AtUri, NSID } from "@atproto/syntax";
-import {
-  type LexArray,
-  type LexiconDoc,
-  lexiconDoc,
-  type LexObject,
-  type LexRefVariant,
-} from "@atproto/lexicon";
+import { AtUri } from "@atproto/syntax";
+import { type LexArray, type LexiconDoc, lexiconDoc, type LexObject, type LexRefVariant } from "@atproto/lexicon";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
 import { createAtprotoClient } from "./atproto-client.ts";
-import { inject, injectable } from "@needle-di/core";
-import { AtpFetchToken } from "./fetch.ts";
+import { FetchService } from "./fetch.ts";
+import { Data, Effect } from "effect";
+import { NSID } from "./nsid.ts";
 
-export type Resolution =
-  | {
-    success: true;
-    uri: AtUri;
-    doc: LexiconDoc;
-    children: NSID[];
-    nsid: NSID;
-    cid: string;
-    unresolvedRefs: string[];
-    pds: string;
-  }
-  | {
-    success: false;
-    nsid: NSID;
-    errorCode: "NO_AUTHORITY" | "AUTHORITY_INVALID" | "RECORD_NOT_FOUND";
-  };
+class NoAuthorityError extends Data.TaggedError("NoAuthorityError")<{
+  nsid: NSID;
+}> {}
 
-export class Schema {
-  #data: null | Promise<Resolution> = null;
+class AuthorityInvalidError extends Data.TaggedError("AuthorityInvalidError")<{
+  nsid: NSID;
+}> {}
 
-  constructor(
-    public readonly nsid: NSID,
-    private fetch: typeof globalThis.fetch,
-    private nsidAuthorityService: NSIDAuthorityService,
-  ) {}
+class RecordNotFoundError extends Data.TaggedError("RecordNotFoundError")<{
+  nsid: NSID;
+}> {}
 
-  async #internalResolve(): Promise<Resolution> {
-    const authority = await this.nsidAuthorityService.resolve(this.nsid);
-    if (!authority) {
-      return { success: false, errorCode: "NO_AUTHORITY", nsid: this.nsid };
-    }
+class CidNotFoundError extends Data.TaggedError("CidNotFoundError")<{
+  nsid: NSID;
+}> {}
 
-    const uri = AtUri.make(
-      authority.did,
-      "com.atproto.lexicon.schema",
-      this.nsid.toString(),
-    );
+type ResolutionError = NoAuthorityError | AuthorityInvalidError | RecordNotFoundError | CidNotFoundError;
 
-    const client = createAtprotoClient(authority.pds, this.fetch);
+export type Resolution = {
+  uri: AtUri;
+  doc: LexiconDoc;
+  children: NSID[];
+  nsid: NSID;
+  cid: string;
+  unresolvedRefs: string[];
+  pds: string;
+};
 
-    const schemaRecordResponse = await client.com.atproto.repo.getRecord({
-      repo: authority.did,
-      collection: "com.atproto.lexicon.schema",
-      rkey: this.nsid.toString(),
-    });
+const schemaServiceImpl = Effect.gen(function* () {
+  const fetch = yield* FetchService;
+  const nsidAuthorityService = yield* NSIDAuthorityService;
 
-    // This fixes an issue with the lexiconDoc schema not expecting the $type field
-    delete schemaRecordResponse.data.value.$type;
-
-    const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
-
-    if (schemaRecordResponse.data.cid === undefined) {
-      throw new Error("Expected cid to be defined");
-    }
-
-    const refs = getRefs(doc);
-
-    const externalRefs = [
-      ...new Set(
-        refs
-          .filter(
-            (ref) =>
-              !ref.startsWith("#") &&
-              ref.split("#")[0] !== this.nsid.toString(),
-          )
-          .map((ref) => ref.split("#")[0]!),
-      ),
-    ];
-
-    const childNsids = [];
-    const unresolvedRefs = [];
-
-    for (const ref of externalRefs) {
-      if (NSID.isValid(ref)) {
-        childNsids.push(NSID.parse(ref));
-      } else {
-        unresolvedRefs.push(ref);
+  return (nsid: NSID) =>
+    Effect.gen(function* () {
+      const authority = yield* nsidAuthorityService.resolve(nsid);
+      if (!authority) {
+        return yield* Effect.fail(new NoAuthorityError({ nsid }));
       }
-    }
 
-    if (unresolvedRefs.length > 0) {
-      console.warn(`Unresolved refs: ${unresolvedRefs.join(", ")}`);
-    }
+      const uri = AtUri.make(authority.did, "com.atproto.lexicon.schema", nsid.toString());
 
-    return {
-      success: true,
-      uri: uri,
-      children: childNsids,
-      doc,
-      nsid: this.nsid,
-      cid: schemaRecordResponse.data.cid,
-      unresolvedRefs,
-      pds: authority.pds,
-    };
-  }
+      const client = createAtprotoClient(authority.pds, fetch);
 
-  resolve(): Promise<Resolution> {
-    if (this.#data) {
-      return this.#data;
-    }
+      const schemaRecordResponse = yield* Effect.tryPromise(() =>
+        client.com.atproto.repo.getRecord({
+          repo: authority.did,
+          collection: "com.atproto.lexicon.schema",
+          rkey: nsid.toString(),
+        }),
+      );
 
-    return (this.#data = this.#internalResolve());
-  }
-}
+      // This fixes an issue with the lexiconDoc schema not expecting the $type field
+      delete schemaRecordResponse.data.value.$type;
+
+      const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
+
+      if (schemaRecordResponse.data.cid === undefined) {
+        return yield* Effect.fail(new CidNotFoundError({ nsid }));
+      }
+
+      const refs = getRefs(doc);
+
+      const externalRefs = [
+        ...new Set(
+          refs
+            .filter((ref) => !ref.startsWith("#") && ref.split("#")[0] !== nsid.toString())
+            .map((ref) => ref.split("#")[0]!),
+        ),
+      ];
+
+      const childNsids = [];
+      const unresolvedRefs = [];
+
+      for (const ref of externalRefs) {
+        if (NSID.isValid(ref)) {
+          childNsids.push(yield* NSID.parse(ref));
+        } else {
+          unresolvedRefs.push(ref);
+        }
+      }
+
+      if (unresolvedRefs.length > 0) {
+        console.warn(`Unresolved refs: ${unresolvedRefs.join(", ")}`);
+      }
+
+      return {
+        uri: uri,
+        children: childNsids,
+        doc,
+        nsid,
+        cid: schemaRecordResponse.data.cid,
+        unresolvedRefs,
+        pds: authority.pds,
+      };
+    });
+});
+
+export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaService", {
+  effect: schemaServiceImpl,
+}) {}
 
 function getRefs(doc: LexiconDoc): string[] {
   const refs: (LexRefVariant | string)[] = [];
@@ -136,9 +127,7 @@ function getRefs(doc: LexiconDoc): string[] {
       case "subscription":
       case "procedure":
       case "query": {
-        const schema = def.type === "subscription"
-          ? def.message?.schema
-          : def.output?.schema;
+        const schema = def.type === "subscription" ? def.message?.schema : def.output?.schema;
         switch (schema?.type) {
           case undefined:
             break;
@@ -159,7 +148,8 @@ function getRefs(doc: LexiconDoc): string[] {
             throw new Error(
               `Unexpected ${def.type} output.schema type: ${
                 // @ts-expect-error exhaustative check
-                schema?.type}`,
+                schema?.type
+              }`,
             );
         }
         break;
@@ -176,24 +166,12 @@ function getRefs(doc: LexiconDoc): string[] {
         break;
 
       default:
-        throw new Error(
-          `Unexpected def type: ${
-            // @ts-expect-error Exhaustative check
-            def.type}`,
-        );
+        throw new Error(`Unexpected def type: ${def.type}`);
     }
   }
 
   return [
-    ...new Set(
-      refs.flatMap((ref) =>
-        typeof ref === "string"
-          ? [ref]
-          : ref.type === "ref"
-          ? [ref.ref]
-          : ref.refs
-      ),
-    ),
+    ...new Set(refs.flatMap((ref) => (typeof ref === "string" ? [ref] : ref.type === "ref" ? [ref.ref] : ref.refs))),
   ];
 }
 
@@ -217,18 +195,4 @@ function getObjectRefs(obj: LexObject): LexRefVariant[] {
 
     return [];
   });
-}
-
-@injectable()
-export class SchemaFactory {
-  constructor(
-    private fetch: typeof globalThis.fetch = inject(AtpFetchToken),
-    private nsidAuthorityService: NSIDAuthorityService = inject(
-      NSIDAuthorityService,
-    ),
-  ) {}
-
-  create(nsid: NSID): Schema {
-    return new Schema(nsid, this.fetch, this.nsidAuthorityService);
-  }
 }

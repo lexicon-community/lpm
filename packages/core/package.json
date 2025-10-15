@@ -1,0 +1,35 @@
+{
+  "name": "@lpm/core",
+  "version": "0.3.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lexicon-community/lpm.git",
+    "directory": "packages/core"
+  },
+  "type": "module",
+  "module": "./dist/main.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "test": "node --test test/*.spec.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@atproto/api": "catalog:",
+    "@atproto/identity": "catalog:",
+    "@atproto/lexicon": "catalog:",
+    "@atproto/syntax": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "effect": "catalog:"
+  }
+}

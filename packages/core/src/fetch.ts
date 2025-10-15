@@ -1,5 +1,5 @@
-import { InjectionToken } from "@needle-di/core";
+import { Effect } from "effect";
 
-export const AtpFetchToken = new InjectionToken(Symbol("AtpFetch"), {
-  factory: () => fetch,
-});
+export class FetchService extends Effect.Service<FetchService>()("core/FetchService", {
+  sync: () => globalThis.fetch,
+}) {}
