@@ -1,2 +1,4 @@
 lexicons/
 lexicons.json
+node_modules
+dist

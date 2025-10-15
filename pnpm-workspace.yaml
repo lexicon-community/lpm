@@ -1,0 +1,13 @@
+packages:
+  - packages/*
+
+catalog:
+  '@atproto/api': ^0.17.3
+  '@atproto/identity': ^0.4.9
+  '@atproto/lexicon': ^0.5.1
+  '@atproto/syntax': 0.4.1
+  '@effect/platform-node': ^0.98.3
+  '@types/node': ^24.7.2
+  effect: ^3.18.4
+  eslint: 9.37.0
+  typescript: 5.9.3
