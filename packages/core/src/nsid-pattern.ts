@@ -1,3 +1,6 @@
+import { Effect } from "effect/index";
+import { NSID } from "./nsid.ts";
+
 export class NSIDPattern {
   base: NSID;
 
@@ -7,7 +10,8 @@ export class NSIDPattern {
       throw new Error("Wildcard is only allowed in the last segment of the pattern");
     }
 
-    this.base = NSID.parse(base);
+    // TODO: I don't like this
+    this.base = Effect.runSync(NSID.parse(base));
   }
 }
 

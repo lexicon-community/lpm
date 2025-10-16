@@ -15,7 +15,8 @@
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "test": "node --test test/*.spec.ts"
+    "test": "node --test test/*.spec.ts",
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
