@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "test": "node --test test/*.spec.ts",
+    "test": "node --test test/*.test.ts",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
