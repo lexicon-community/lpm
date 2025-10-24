@@ -6,23 +6,23 @@ import { FetchService } from "./fetch.ts";
 import { Data, Effect } from "effect";
 import { NSID } from "./nsid.ts";
 
-class NoAuthorityError extends Data.TaggedError("NoAuthorityError")<{
+export class NoAuthorityError extends Data.TaggedError("NoAuthorityError")<{
   nsid: NSID;
 }> {}
 
-class AuthorityInvalidError extends Data.TaggedError("AuthorityInvalidError")<{
+export class AuthorityInvalidError extends Data.TaggedError("AuthorityInvalidError")<{
   nsid: NSID;
 }> {}
 
-class RecordNotFoundError extends Data.TaggedError("RecordNotFoundError")<{
+export class RecordNotFoundError extends Data.TaggedError("RecordNotFoundError")<{
   nsid: NSID;
 }> {}
 
-class CidNotFoundError extends Data.TaggedError("CidNotFoundError")<{
+export class CidNotFoundError extends Data.TaggedError("CidNotFoundError")<{
   nsid: NSID;
 }> {}
 
-type ResolutionError = NoAuthorityError | AuthorityInvalidError | RecordNotFoundError | CidNotFoundError;
+export type ResolutionError = NoAuthorityError | AuthorityInvalidError | RecordNotFoundError | CidNotFoundError;
 
 export type Resolution = {
   uri: AtUri;

@@ -1,7 +1,7 @@
 import { isValidNsid, parseNsid, NSID as ATNSID } from "@atproto/syntax";
 import { Data, Effect } from "effect";
 
-class NSIDParseError extends Data.TaggedError("NSIDParseError")<{
+export class NSIDParseError extends Data.TaggedError("NSIDParseError")<{
   cause: Error;
 }> {}
 

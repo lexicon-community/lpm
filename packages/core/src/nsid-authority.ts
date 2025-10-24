@@ -4,11 +4,11 @@ import { Data, Effect } from "effect";
 import { NSIDPattern } from "./nsid-pattern.ts";
 import { NSID } from "./nsid.ts";
 
-class DidNotFoundError extends Data.TaggedError("DidNotFoundError")<{
+export class DidNotFoundError extends Data.TaggedError("DidNotFoundError")<{
   cause: AtprotoDidNotFoundError;
 }> {}
 
-class UnknownError extends Data.TaggedError("UnknownError")<{
+export class UnknownError extends Data.TaggedError("UnknownError")<{
   cause: unknown;
 }> {}
 
