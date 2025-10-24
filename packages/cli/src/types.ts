@@ -38,4 +38,5 @@ export const nsidArg = Args.text({ name: "nsid" }).pipe(
     (value) => NSID.parse(value),
     () => HelpDoc.p("The provided value is not a valid NSID."),
   ),
+  Args.withDescription("A valid lexicon NSID."),
 );

@@ -1,4 +1,4 @@
-import { Command } from "@effect/cli";
+import { Args, Command } from "@effect/cli";
 import { nsidArg } from "../types.ts";
 import { Console, Effect } from "effect";
 import { SchemaService } from "@lpm/core";
@@ -7,7 +7,7 @@ import chalk from "chalk";
 export const viewCommand = Command.make(
   "view",
   {
-    nsid: nsidArg,
+    nsid: nsidArg.pipe(Args.withDescription("The NSID of the lexicon to view.")),
   },
   ({ nsid }) =>
     Effect.gen(function* () {
