@@ -1,0 +1,31 @@
+{
+  "name": "@lpm/cli",
+  "version": "0.2.4",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lexicon-community/lpm.git",
+    "directory": "packages/cli"
+  },
+  "files": [
+    "dist",
+    "files"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "test": "node --test test/*.test.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "@atproto/syntax": "catalog:",
+    "@effect/cli": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "@lpm/core": "workspace:*",
+    "chalk": "catalog:",
+    "effect": "catalog:"
+  }
+}

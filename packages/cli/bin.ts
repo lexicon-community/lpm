@@ -1,28 +1,15 @@
-import {
-  AddCommand,
-  type CommandDescriptor,
-  FetchCommand,
-  TreeCommand,
-  ViewCommand,
-} from "./src/commands.ts";
-import { Command } from "@cliffy/command";
-import { Container } from "@needle-di/core";
-import pkg from "./deno.json" with { type: "json" };
+import { Args, Command } from "@effect/cli";
+import { NodeContext, NodeRuntime } from "@effect/platform-node";
+import { Console, Effect } from "effect";
+import { viewCommand } from "./src/commands/view.ts";
+import { Container } from "@lpm/core";
+import pkg from "./package.json" with { type: "json" };
 
-const bin = new Command()
-  .name("lpm")
-  .version(pkg.version)
-  .action(() => {
-    console.log(bin.getHelp());
-  });
+const lpm = Command.make("lpm", {}, () => Console.log("lpm cli")).pipe(Command.withSubcommands([viewCommand]));
 
-const commands = [FetchCommand, AddCommand, ViewCommand, TreeCommand];
-const container = new Container();
+const cli = Command.run(lpm, {
+  name: "lpm CLI",
+  version: `v${pkg.version}`,
+});
 
-for (const cmd of commands) {
-  // deno-lint-ignore no-explicit-any
-  const instance = container.get(cmd as any) as CommandDescriptor;
-  bin.command(instance.name, instance.command);
-}
-
-await bin.parse();
+cli(process.argv).pipe(Effect.provide([Container, NodeContext.layer]), NodeRuntime.runMain);

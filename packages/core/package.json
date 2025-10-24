@@ -8,7 +8,12 @@
     "directory": "packages/core"
   },
   "type": "module",
-  "module": "./dist/main.js",
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    }
+  },
   "files": [
     "dist",
     "src"
