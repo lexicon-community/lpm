@@ -2,17 +2,17 @@ import { Effect, Cache, Duration, Queue, Stream } from "effect";
 import { type Resolution, SchemaService } from "./schema.ts";
 import { NSID } from "./nsid.ts";
 
-const catalogImpl = Effect.gen(function* () {
-  const resolveCache = yield* Cache.make({
-    capacity: 100,
-    timeToLive: Duration.infinity,
-    lookup: yield* SchemaService,
-  });
+export class Catalog extends Effect.Service<Catalog>()("core/Catalog", {
+  effect: Effect.gen(function* () {
+    const resolveCache = yield* Cache.make({
+      capacity: 100,
+      timeToLive: Duration.infinity,
+      lookup: yield* SchemaService,
+    });
 
-  // const resolve2 = (roots: NSID[]) =>
+    // const resolve2 = (roots: NSID[]) =>
 
-  const resolve = (roots: NSID[]) =>
-    Effect.gen(function* () {
+    const resolve = Effect.fn("Catalog/resolve")(function* (roots: NSID[]) {
       const queue = yield* Queue.bounded<Resolution>(100);
 
       const producer = Effect.gen(function* () {
@@ -55,12 +55,9 @@ const catalogImpl = Effect.gen(function* () {
       );
     });
 
-  return {
-    resolve,
-    invalidate: (nsid: NSID) => resolveCache.invalidate(nsid),
-  };
-});
-
-export class Catalog extends Effect.Service<Catalog>()("core/Catalog", {
-  effect: catalogImpl,
+    return {
+      resolve,
+      invalidate: (nsid: NSID) => resolveCache.invalidate(nsid),
+    };
+  }),
 }) {}

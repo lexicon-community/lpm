@@ -34,12 +34,12 @@ export type Resolution = {
   pds: string;
 };
 
-const schemaServiceImpl = Effect.gen(function* () {
-  const fetch = yield* FetchService;
-  const nsidAuthorityService = yield* NSIDAuthorityService;
+export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaService", {
+  effect: Effect.gen(function* () {
+    const fetch = yield* FetchService;
+    const nsidAuthorityService = yield* NSIDAuthorityService;
 
-  return (nsid: NSID) =>
-    Effect.gen(function* () {
+    return Effect.fn("resolveSchema")(function* (nsid: NSID) {
       const authority = yield* nsidAuthorityService.resolve(nsid);
       if (!authority) {
         return yield* Effect.fail(new NoAuthorityError({ nsid }));
@@ -101,10 +101,7 @@ const schemaServiceImpl = Effect.gen(function* () {
         pds: authority.pds,
       };
     });
-});
-
-export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaService", {
-  effect: schemaServiceImpl,
+  }),
 }) {}
 
 function getRefs(doc: LexiconDoc): string[] {

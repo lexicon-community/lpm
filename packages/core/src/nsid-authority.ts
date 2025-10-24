@@ -27,48 +27,43 @@ export class DidResolver extends Effect.Service<DidResolver>()("core/DidResolver
 
             return new UnknownError({ cause: err });
           },
-        }),
+        }).pipe(Effect.withSpan("DidResolver/resolveAtprotoData")),
     };
   },
 }) {}
 
-const nsidAuthorityServiceImpl = Effect.gen(function* () {
-  const dnsService = yield* DnsService;
-  const didResolver = yield* DidResolver;
+export class NSIDAuthorityService extends Effect.Service<NSIDAuthorityService>()("core/NSIDAuthorityService", {
+  effect: Effect.gen(function* () {
+    const dnsService = yield* DnsService;
+    const didResolver = yield* DidResolver;
 
-  return {
-    resolve: (nsidOrPattern: NSID | NSIDPattern) =>
-      Effect.gen(function* () {
-        {
-          const nsid =
-            nsidOrPattern instanceof NSIDPattern
-              ? NSID.create(nsidOrPattern.base.segments.slice().reverse().join("."), "dummy")
-              : nsidOrPattern;
+    return {
+      resolve: Effect.fn("NSIDAuthorityService/resolve")(function* (nsidOrPattern: NSID | NSIDPattern) {
+        const nsid =
+          nsidOrPattern instanceof NSIDPattern
+            ? NSID.create(nsidOrPattern.base.segments.slice().reverse().join("."), "dummy")
+            : nsidOrPattern;
 
-          const record = yield* dnsService
-            .resolveTxt(`_lexicon.${nsid.authority}`)
-            .pipe(Effect.catchAll(() => Effect.succeed(null)));
+        const record = yield* dnsService
+          .resolveTxt(`_lexicon.${nsid.authority}`)
+          .pipe(Effect.catchAll(() => Effect.succeed(null)));
 
-          if (!record) {
+        if (!record) {
+          return null;
+        }
+
+        const authorityDid = record.join("").replace(/^did=/, "");
+
+        try {
+          return yield* didResolver.resolveAtprotoData(authorityDid);
+        } catch (err) {
+          if (err instanceof DidNotFoundError) {
             return null;
           }
 
-          const authorityDid = record.join("").replace(/^did=/, "");
-
-          try {
-            return yield* didResolver.resolveAtprotoData(authorityDid);
-          } catch (err) {
-            if (err instanceof DidNotFoundError) {
-              return null;
-            }
-
-            throw err;
-          }
+          throw err;
         }
       }),
-  };
-});
-
-export class NSIDAuthorityService extends Effect.Service<NSIDAuthorityService>()("core/NSIDAuthorityService", {
-  effect: nsidAuthorityServiceImpl,
+    };
+  }),
 }) {}
