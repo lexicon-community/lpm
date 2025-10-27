@@ -1,11 +1,26 @@
 import { isValidNsid, parseNsid, NSID as ATNSID } from "@atproto/syntax";
-import { Data, Effect } from "effect";
+import { Data, Effect, Equal, Hash } from "effect";
 
 export class NSIDParseError extends Data.TaggedError("NSIDParseError")<{
   cause: Error;
 }> {}
 
-export class NSID extends Data.Class<{ segments: readonly string[] }> {
+export class NSID implements Equal.Equal {
+  readonly segments: readonly string[];
+
+  constructor(input: { readonly segments: readonly string[] }) {
+    this.segments = input.segments;
+  }
+
+  [Equal.symbol](that: Equal.Equal): boolean {
+    if (!(that instanceof NSID)) return false;
+    return this.segments.length === that.segments.length && this.segments.every((seg, i) => seg === that.segments[i]);
+  }
+
+  [Hash.symbol](): number {
+    return Hash.hash(this.toString());
+  }
+
   static parse(input: string) {
     return Effect.try({
       try: () => new NSID({ segments: parseNsid(input) }),
