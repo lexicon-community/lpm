@@ -1,15 +1,14 @@
 import { Effect } from "effect";
-import { type ContainerRequirement, Container } from "../src/container.ts";
 import test from "node:test";
+import { DevTools } from "@effect/experimental";
 
 export async function testEffect(name: string, effect: Effect.Effect<unknown, unknown, never>) {
-  await test(name, async () => {
-    await Effect.runPromise(effect);
-  });
+  await test(name, runEffectForTest(effect));
 }
 
-testEffect.only = async (name: string, effect: Effect.Effect<unknown, unknown, never>) => {
-  await test.only(name, async () => {
-    await Effect.runPromise(effect);
-  });
+testEffect.only = async (name: string, effect: Effect.Effect<unknown, unknown, never>) =>
+  test.only(name, runEffectForTest(effect));
+
+const runEffectForTest = (effect: Effect.Effect<unknown, unknown, never>) => async () => {
+  await Effect.runPromise(effect.pipe(Effect.provide(DevTools.layer())));
 };
