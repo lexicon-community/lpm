@@ -40,6 +40,7 @@ export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaS
     const nsidAuthorityService = yield* NSIDAuthorityService;
 
     return Effect.fn("resolveSchema")(function* (nsid: NSID) {
+      yield* Effect.annotateCurrentSpan("nsid", nsid.toString());
       const authority = yield* nsidAuthorityService.resolve(nsid);
       if (!authority) {
         return yield* Effect.fail(new NoAuthorityError({ nsid }));
