@@ -1,7 +1,16 @@
-export * from "./schema.ts";
-export * from "./catalog.ts";
-export * from "./nsid-pattern.ts";
-export * from "./container.ts";
+export {
+  AuthorityInvalidError,
+  CidNotFoundError,
+  NoAuthorityError,
+  RecordNotFoundError,
+  type Resolution,
+  type ResolutionError,
+  SchemaService,
+} from "./schema.ts";
+export { Catalog } from "./catalog.ts";
+export { NSIDPattern } from "./nsid-pattern.ts";
+export { Container, type ContainerRequirement } from "./container.ts";
+export { NSID } from "./nsid.ts";
 
 import { type Resolution } from "./schema.ts";
 import { Effect, Stream } from "effect";
