@@ -10,7 +10,7 @@ export {
 export { Catalog } from "./catalog.ts";
 export { NSIDPattern } from "./nsid-pattern.ts";
 export { Container, type ContainerRequirement } from "./container.ts";
-export { NSID } from "./nsid.ts";
+export { NSID, NSIDSchema } from "./nsid.ts";
 
 import { type Resolution } from "./schema.ts";
 import { Effect, Stream } from "effect";

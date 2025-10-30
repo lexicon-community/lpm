@@ -1,9 +1,18 @@
 import { isValidNsid, parseNsid, NSID as ATNSID } from "@atproto/syntax";
-import { Data, Effect, Equal, Hash } from "effect";
+import { Data, Effect, Equal, Hash, ParseResult, Schema } from "effect";
 
 export class NSIDParseError extends Data.TaggedError("NSIDParseError")<{
   cause: Error;
 }> {}
+
+const NSIDFromSelf = Schema.declare((input: unknown): input is NSID => input instanceof NSID);
+
+export const NSIDSchema = Schema.transformOrFail(Schema.String, NSIDFromSelf, {
+  strict: true,
+  encode: (nsid) => ParseResult.succeed(nsid.toString()),
+  decode: (input, _options, ast) =>
+    NSID.parse(input).pipe(Effect.mapError(() => new ParseResult.Type(ast, input, "Invalid NSID"))),
+});
 
 export class NSID implements Equal.Equal {
   readonly segments: readonly string[];

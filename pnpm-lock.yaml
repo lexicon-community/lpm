@@ -84,6 +84,12 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      eslint:
+        specifier: 'catalog:'
+        version: 9.37.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   packages/core:
     dependencies:

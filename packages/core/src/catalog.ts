@@ -12,7 +12,7 @@ export class Catalog extends Effect.Service<Catalog>()("core/Catalog", {
 
     // const resolve2 = (roots: NSID[]) =>
 
-    const resolve = Effect.fn("Catalog/resolve")(function* (roots: NSID[]) {
+    const resolve = Effect.fn("Catalog/resolve")(function* (roots: readonly NSID[]) {
       const queue = yield* Queue.bounded<Resolution>(100);
 
       const producer = Effect.gen(function* () {
