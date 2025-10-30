@@ -2,8 +2,9 @@
 // import { NSIDPattern } from "@lpm/core";
 // import { NSID } from "@atproto/syntax";
 
-import { NSID } from "@atproto/syntax";
 import { Args, HelpDoc } from "@effect/cli";
+import { NSID } from "@lpm/core";
+import { Effect } from "effect";
 
 // export function nsidOrPattern(
 //   { label, name, value }: ArgumentValue,
@@ -34,9 +35,8 @@ import { Args, HelpDoc } from "@effect/cli";
 // }
 
 export const nsidArg = Args.text({ name: "nsid" }).pipe(
-  Args.mapTryCatch(
-    (value) => NSID.parse(value),
-    () => HelpDoc.p("The provided value is not a valid NSID."),
+  Args.mapEffect((value) =>
+    NSID.parse(value).pipe(Effect.mapError(() => HelpDoc.p("The provided value is not a valid NSID."))),
   ),
   Args.withDescription("A valid lexicon NSID."),
 );
