@@ -4,6 +4,8 @@ import { Catalog } from "../src/catalog.ts";
 import { NSID } from "../src/nsid.ts";
 import assert from "node:assert/strict";
 import { Container } from "../src/container.ts";
+import { AtpBaseClient, AtUri } from "@atproto/api";
+import { Lexicons } from "@atproto/lexicon";
 
 testEffect(
   "catalog resolve",
@@ -62,44 +64,43 @@ testEffect(
   }).pipe(Effect.provide(Container)),
 );
 
-// test("can validate a post record", async () => {
-//   const NSID_STR = "app.bsky.feed.post";
-//   const catalog = bootstrap(Catalog);
-//   const resolutions = [];
-//   for await (const resolution of catalog.resolve([
-//     catalog.get(NSID.parse(NSID_STR)),
-//   ])) {
-//     assertSuccessfullResolution(resolution);
-//     resolutions.push(resolution);
-//   }
+testEffect(
+  "can validate a post record",
+  Effect.gen(function* () {
+    const NSID_STR = "app.bsky.feed.post";
+    const catalog = yield* Catalog;
+    const stream = yield* catalog.resolve([yield* NSID.parse(NSID_STR)]);
+    const resolutions = Chunk.toArray(yield* Stream.runCollect(stream));
 
-//   const client = new AtpBaseClient("https://api.bsky.app");
+    const client = new AtpBaseClient("https://api.bsky.app");
 
-//   const postUris = [
-//     "at://did:plc:2xau7wbgdq4phuou2ypwuen7/app.bsky.feed.post/3ljmvgixb327d",
-//   ].map((uri) => new AtUri(uri));
+    const postUris = ["at://did:plc:2xau7wbgdq4phuou2ypwuen7/app.bsky.feed.post/3ljmvgixb327d"].map(
+      (uri) => new AtUri(uri),
+    );
 
-//   const records = await Promise.all(
-//     postUris.map((uri) =>
-//       client.com.atproto.repo.getRecord({
-//         repo: uri.host,
-//         collection: uri.collection,
-//         rkey: uri.rkey,
-//       }),
-//     ),
-//   );
+    const records = yield* Effect.all(
+      postUris.map((uri) =>
+        Effect.tryPromise(() =>
+          client.com.atproto.repo.getRecord({
+            repo: uri.host,
+            collection: uri.collection,
+            rkey: uri.rkey,
+          }),
+        ),
+      ),
+    );
 
-//   const lexicons = new Lexicons(resolutions.map((r) => r.doc));
-
-//   for (const record of records) {
-//     const result = lexicons.validate(NSID_STR, record.data.value);
-//     assert.equal(
-//       result.success,
-//       true,
-//       `Failed to validate ${record.data.uri}: ${
-//         // @ts-expect-error result.error isn't narrowed
-//         result.error
-//       }`,
-//     );
-//   }
-// });
+    const lexicons = new Lexicons(resolutions.map((r) => r.doc));
+    for (const record of records) {
+      const result = lexicons.validate(NSID_STR, record.data.value);
+      assert.equal(
+        result.success,
+        true,
+        `Failed to validate ${record.data.uri}: ${
+          // @ts-expect-error result.error isn't narrowed
+          result.error
+        }`,
+      );
+    }
+  }).pipe(Effect.provide(Container)),
+);
