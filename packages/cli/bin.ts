@@ -1,6 +1,6 @@
 import { Command } from "@effect/cli";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
-import { Cause, Console, Effect, Exit, Layer, Logger } from "effect";
+import { Cause, Console, Effect, Exit, Layer } from "effect";
 import { viewCommand } from "./src/commands/view.ts";
 import pkg from "./package.json" with { type: "json" };
 import { fetchCommand } from "./src/commands/fetch.ts";
@@ -8,10 +8,12 @@ import { Container } from "@lpm/core";
 import { ManifestService } from "./src/services.ts";
 import { type Teardown, defaultTeardown } from "@effect/platform/Runtime";
 import { CliError } from "./src/error.ts";
+import { treeCommand } from "./src/commands/tree.ts";
+import { Terminal } from "@effect/platform";
 import chalk from "chalk";
 
 const lpm = Command.make("lpm", {}, () => Console.log("lpm cli")).pipe(
-  Command.withSubcommands([viewCommand, fetchCommand]),
+  Command.withSubcommands([viewCommand, fetchCommand, treeCommand]),
 );
 
 const cli = Command.run(lpm, {
@@ -19,21 +21,10 @@ const cli = Command.run(lpm, {
   version: `v${pkg.version}`,
 });
 
-const logger = Logger.make((options) => {
-  if (Cause.isFailType(options.cause) && options.cause.error instanceof CliError) {
-    console.error(`${chalk.white.bgRed("[ERROR]")} ${options.cause.error.message}`);
-  } else {
-    Logger.prettyLoggerDefault.log(options);
-  }
-});
-
-const LoggerLayer = Logger.replace(Logger.defaultLogger, logger);
-
 const LayerLive = Container.pipe(
   Layer.provideMerge(ManifestService.Default),
   // Must be provided last
   Layer.provideMerge(NodeContext.layer),
-  Layer.provideMerge(LoggerLayer),
 );
 
 const teardown: Teardown = (exit, onExit) => {
@@ -47,16 +38,15 @@ const teardown: Teardown = (exit, onExit) => {
 };
 
 cli(process.argv).pipe(
-  Effect.tapErrorCause((cause) => {
-    if (Cause.isInterruptedOnly(cause)) {
-      return Effect.void;
-    }
-    return Effect.logError(cause);
-  }),
+  Effect.catchTag("CliError", (error) =>
+    Effect.gen(function* () {
+      const terminal = yield* Terminal.Terminal;
+
+      yield* terminal.display(`${chalk.white.bgRed("[ERROR]")} ${error.message}`);
+    }),
+  ),
   Effect.provide(LayerLive),
   NodeRuntime.runMain({
     teardown,
-    disablePrettyLogger: true,
-    disableErrorReporting: true,
   }),
 );
