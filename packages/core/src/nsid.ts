@@ -11,7 +11,7 @@ export const NSIDSchema = Schema.transformOrFail(Schema.String, NSIDFromSelf, {
   strict: true,
   encode: (nsid) => ParseResult.succeed(nsid.toString()),
   decode: (input, _options, ast) =>
-    NSID.parse(input).pipe(Effect.mapError(() => new ParseResult.Type(ast, input, "Invalid NSID"))),
+    NSID.parse(input).pipe(Effect.mapError(() => new ParseResult.Type(ast, input, `Invalid NSID: "${input}"`))),
 });
 
 export class NSID implements Equal.Equal {
