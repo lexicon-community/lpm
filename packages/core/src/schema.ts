@@ -100,7 +100,7 @@ export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaS
         cid: schemaRecordResponse.data.cid,
         unresolvedRefs,
         pds: authority.pds,
-      };
+      } as Resolution;
     });
   }),
 }) {}
