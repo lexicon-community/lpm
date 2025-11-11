@@ -1,10 +1,10 @@
 import { AtUri } from "@atproto/syntax";
 import { type LexArray, type LexiconDoc, lexiconDoc, type LexObject, type LexRefVariant } from "@atproto/lexicon";
 import { NSIDAuthorityService } from "./nsid-authority.ts";
-import { createAtprotoClient } from "./atproto-client.ts";
-import { FetchService } from "./fetch.ts";
 import { Data, Effect } from "effect";
 import { NSID } from "./nsid.ts";
+import { HttpClient } from "@effect/platform";
+import { ComAtprotoRepoGetRecord, lexicons } from "@atproto/api";
 
 export class NoAuthorityError extends Data.TaggedError("NoAuthorityError")<{
   nsid: NSID;
@@ -13,6 +13,16 @@ export class NoAuthorityError extends Data.TaggedError("NoAuthorityError")<{
 export class AuthorityInvalidError extends Data.TaggedError("AuthorityInvalidError")<{
   nsid: NSID;
 }> {}
+
+export class XrpcError extends Data.TaggedError("XrpcError")<{
+  nsid: NSID;
+  status: number;
+  url: string;
+}> {
+  get message() {
+    return `XRPC error resolving schema for NSID ${this.nsid.toString()}: status ${this.status} (${this.url})`;
+  }
+}
 
 export class RecordNotFoundError extends Data.TaggedError("RecordNotFoundError")<{
   nsid: NSID;
@@ -36,8 +46,34 @@ export type Resolution = {
 
 export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaService", {
   effect: Effect.gen(function* () {
-    const fetch = yield* FetchService;
+    const http = yield* HttpClient.HttpClient;
     const nsidAuthorityService = yield* NSIDAuthorityService;
+
+    const getSchema = (pds: string, repo: string, nsid: NSID) =>
+      Effect.gen(function* () {
+        const url = new URL(`/xrpc/com.atproto.repo.getRecord`, pds);
+        url.searchParams.set("repo", repo);
+        url.searchParams.set("collection", "com.atproto.lexicon.schema");
+        url.searchParams.set("rkey", nsid.toString());
+
+        const response = yield* http.get(url, {
+          acceptJson: true,
+        });
+
+        if (response.status !== 200) {
+          return yield* Effect.fail(new XrpcError({ nsid, status: response.status, url: url.toString() }));
+        }
+
+        const json = yield* response.json;
+        try {
+          lexicons.assertValidXrpcOutput("com.atproto.repo.getRecord", json);
+        } catch (e) {
+          console.error(e);
+          return yield* Effect.fail(new RecordNotFoundError({ nsid }));
+        }
+
+        return json as unknown as ComAtprotoRepoGetRecord.OutputSchema;
+      });
 
     return Effect.fn("resolveSchema")(function* (nsid: NSID) {
       yield* Effect.annotateCurrentSpan("nsid", nsid.toString());
@@ -48,22 +84,14 @@ export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaS
 
       const uri = AtUri.make(authority.did, "com.atproto.lexicon.schema", nsid.toString());
 
-      const client = createAtprotoClient(authority.pds, fetch);
-
-      const schemaRecordResponse = yield* Effect.tryPromise(() =>
-        client.com.atproto.repo.getRecord({
-          repo: authority.did,
-          collection: "com.atproto.lexicon.schema",
-          rkey: nsid.toString(),
-        }),
-      );
+      const schemaRecordResponse = yield* getSchema(authority.pds, authority.did, nsid);
 
       // This fixes an issue with the lexiconDoc schema not expecting the $type field
-      delete schemaRecordResponse.data.value.$type;
+      delete schemaRecordResponse.value.$type;
 
-      const doc = lexiconDoc.parse(schemaRecordResponse.data.value);
+      const doc = lexiconDoc.parse(schemaRecordResponse.value);
 
-      if (schemaRecordResponse.data.cid === undefined) {
+      if (schemaRecordResponse.cid === undefined) {
         return yield* Effect.fail(new CidNotFoundError({ nsid }));
       }
 
@@ -97,7 +125,7 @@ export class SchemaService extends Effect.Service<SchemaService>()("core/SchemaS
         children: childNsids,
         doc,
         nsid,
-        cid: schemaRecordResponse.data.cid,
+        cid: schemaRecordResponse.cid,
         unresolvedRefs,
         pds: authority.pds,
       } as Resolution;

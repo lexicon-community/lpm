@@ -36,6 +36,7 @@
     "@atproto/lexicon": "catalog:",
     "@atproto/syntax": "catalog:",
     "@effect/experimental": "catalog:",
+    "@effect/platform": "catalog:",
     "@effect/platform-node": "catalog:",
     "effect": "catalog:"
   }
