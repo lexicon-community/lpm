@@ -59,7 +59,8 @@ dependencies with a yellow circle.
 
 ## ⚠️ Experimental Node.js Support
 
-Lpm is built using Deno but it's also possible to run it with Node.js. This is experimental for now as it's a bit fiddly to setup.
+Lpm is built using Deno but it's also possible to run it with Node.js. This is
+experimental for now as it's a bit fiddly to setup.
 
 First step is to install it with your package manager of choice:
 
@@ -74,7 +75,8 @@ yarn add jsr:@lpm/cli
 npx jsr add @lpm/cli # replace npx with any of yarn dlx, pnpm dlx, or bunx
 ```
 
-Note, above we don't install it globally, but rather as a project dependency. To run it, we can execute `./node_modules/@lpm/cli/bin.js`
+Note, above we don't install it globally, but rather as a project dependency. To
+run it, we can execute `./node_modules/@lpm/cli/bin.js`
 
 ```bash
 node ./node_modules/@lpm/cli/bin.js --help
