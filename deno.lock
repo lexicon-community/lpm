@@ -19,7 +19,7 @@
     "jsr:@std/text@~1.0.7": "1.0.16",
     "npm:@atproto/api@~0.18.8": "0.18.8",
     "npm:@atproto/identity@~0.4.10": "0.4.10",
-    "npm:@atproto/lexicon@~0.5.2": "0.5.2",
+    "npm:@atproto/lexicon@0.6": "0.6.0",
     "npm:@atproto/syntax@~0.3.3": "0.3.3",
     "npm:@atproto/syntax@~0.4.2": "0.4.2",
     "npm:@needle-di/core@~0.11.2": "0.11.2",
@@ -119,7 +119,7 @@
       "integrity": "sha512-Qo3sGd1N5hdHTaEWUBgptvPkULt2SXnMcWRhveSyctSd/IQwTMyaIH6E62A1SU+8xBSN5QLpoUJNE7iSrYM2Zg==",
       "dependencies": [
         "@atproto/common-web",
-        "@atproto/lexicon@0.6.0",
+        "@atproto/lexicon",
         "@atproto/syntax@0.4.2",
         "@atproto/xrpc",
         "await-lock",
@@ -168,16 +168,6 @@
         "tslib"
       ]
     },
-    "@atproto/lexicon@0.5.2": {
-      "integrity": "sha512-lRmJgMA8f5j7VB5Iu5cp188ald5FuI4FlmZ7nn6EBrk1dgOstWVrI5Ft6K3z2vjyLZRG6nzknlsw+tDP63p7bQ==",
-      "dependencies": [
-        "@atproto/common-web",
-        "@atproto/syntax@0.4.2",
-        "iso-datestring-validator",
-        "multiformats",
-        "zod"
-      ]
-    },
     "@atproto/lexicon@0.6.0": {
       "integrity": "sha512-5veb8aD+J5M0qszLJ+73KSFsFrJBgAY/nM1TSAJvGY7fNc9ZAT+PSUlmIyrdye9YznAZ07yktalls/TwNV7cHQ==",
       "dependencies": [
@@ -197,7 +187,7 @@
     "@atproto/xrpc@0.7.7": {
       "integrity": "sha512-K1ZyO/BU8JNtXX5dmPp7b5UrkLMMqpsIa/Lrj5D3Su+j1Xwq1m6QJ2XJ1AgjEjkI1v4Muzm7klianLE6XGxtmA==",
       "dependencies": [
-        "@atproto/lexicon@0.6.0",
+        "@atproto/lexicon",
         "zod"
       ]
     },
@@ -268,7 +258,7 @@
           "jsr:@std/assert@^1.0.16",
           "npm:@atproto/api@~0.18.8",
           "npm:@atproto/identity@~0.4.10",
-          "npm:@atproto/lexicon@~0.5.2",
+          "npm:@atproto/lexicon@0.6",
           "npm:@atproto/syntax@~0.4.2",
           "npm:@needle-di/core@~0.11.2"
         ]
