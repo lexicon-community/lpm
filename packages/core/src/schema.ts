@@ -173,6 +173,7 @@ function getRefs(doc: LexiconDoc): string[] {
       case "cid-link":
       case "integer":
       case "unknown":
+      case "permission-set":
         break;
 
       default:
