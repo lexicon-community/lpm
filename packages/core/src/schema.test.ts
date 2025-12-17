@@ -1,7 +1,7 @@
 import { AtUri, NSID } from "@atproto/syntax";
 import type { Resolution } from "./schema.ts";
 import { Catalog } from "./catalog.ts";
-import { assertEquals, assertObjectMatch } from "jsr:@std/assert";
+import { assertEquals, assertObjectMatch } from "@std/assert";
 import { bootstrap } from "@needle-di/core";
 import { Lexicons } from "@atproto/lexicon";
 import { AtpBaseClient } from "@atproto/api";
